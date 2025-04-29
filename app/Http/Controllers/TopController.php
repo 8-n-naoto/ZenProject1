@@ -8,4 +8,8 @@ class TopController extends Controller
     {
         return view("note/top");
     }
+    public function show($memo)
+    {
+        return view("note/show", compact('memo'));
+    }
 }
