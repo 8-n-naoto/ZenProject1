@@ -9,9 +9,15 @@
 <body>
  <p>メモ一覧</p>
  <ul>
-    @for ($i = 0; $i < count($memos); $i++)
+    {{-- @for ($i = 0; $i < count($memos); $i++)
         <li><a href="{{route("show", $i + 1)}}">memo{{$i + 1}}</a></li>
-    @endfor
+    @endfor --}}
+
+    @foreach ($memos as $memo)
+
+    <li><a href="{{route("show", $memo->id)}}">memo{{ $memo->id }}:{{ $memo->memo }}</a></li>
+    @endforeach
  </ul>
+ <a href="{{route("store")}}">新規作成</a>
 </body>
 </html>

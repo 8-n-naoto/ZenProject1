@@ -11,15 +11,32 @@ class TopController extends Controller
         $memos = Memo::all();
         return view("note/top",compact("memos"));
     }
+
     public function show(Memo $memo)
     {
         return view("note/show", compact('memo'));
     }
+
+    public function store()
+    {
+        return view("note/store");
+    }
+
+    public function create(Memo $memo,Request $request)
+    {
+        $table = new Memo();
+        $table->memo = $request->memo;
+        $table->save();
+
+        $memos = Memo::all();
+        return view("note/top", compact('memos'));
+    }
+
     public function edit(Memo $memo)
     {
-
         return view("note/edit", compact('memo'));
     }
+
     public function update(Memo $memo,Request $request)
     {
         try {
