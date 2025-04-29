@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 use App\Models\Memo;
+use Illuminate\Http\Request;
 
 class TopController extends Controller
 {
@@ -13,5 +14,28 @@ class TopController extends Controller
     public function show(Memo $memo)
     {
         return view("note/show", compact('memo'));
+    }
+    public function edit(Memo $memo)
+    {
+
+        return view("note/edit", compact('memo'));
+    }
+    public function update(Memo $memo,Request $request)
+    {
+        try {
+            $table = Memo::find($memo->id);
+            $table->memo = $request->memo;
+            $table->save();
+
+            // Memo::where('id', $memo->id)->update([
+            //     'memo' => $memo->data,
+            // ]);
+
+            $is_update = true;
+        } catch (\Throwable $th) {
+            $is_update = false;
+        }
+
+        return view("note/show", compact('memo',"is_update"));
     }
 }
