@@ -8,5 +8,10 @@
 </head>
 <body>
  <p>メモ一覧</p>
+ <ul>
+    <li>memo1</li>
+    <li>memo2</li>
+    <li>memo3</li>
+ </ul>
 </body>
 </html>
