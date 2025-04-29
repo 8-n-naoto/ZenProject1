@@ -9,7 +9,7 @@
 <body>
  <p>メモ一覧</p>
  <ul>
-    @for ($i = 0; $i < 3; $i++)
+    @for ($i = 0; $i < count($memos); $i++)
         <li><a href="{{route("show", $i + 1)}}">memo{{$i + 1}}</a></li>
     @endfor
  </ul>
