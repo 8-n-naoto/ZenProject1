@@ -18,5 +18,10 @@
     <p>内容</p>
     <p>{{ $memo->memo }}</p>
     <a href="{{ route("edit",$memo->id)}}">更新する</a>
+    <form action="{{route("destroy",$memo->id)}}" method="post">
+        @csrf
+        @method("DELETE")
+        <button>削除する</button>
+    </form>
 </body>
 </html>

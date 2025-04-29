@@ -38,4 +38,19 @@ class TopController extends Controller
 
         return view("note/show", compact('memo',"is_update"));
     }
+
+    public function destroy(Memo $memo)
+    {
+        try {
+            $table = Memo::find($memo->id);
+            $table->delete();
+
+            $is_delete = true;
+        } catch (\Throwable $th) {
+            $is_delete = false;
+        }
+
+        $memos = Memo::all();
+        return view("note/top", compact('memos',"is_delete"));
+    }
 }
