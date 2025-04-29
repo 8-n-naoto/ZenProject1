@@ -9,9 +9,9 @@
 <body>
  <p>メモ一覧</p>
  <ul>
-    <li><a href="memo/1/show">memo1</a></li>
-    <li><a href="memo/2/show">memo2</a></li>
-    <li><a href="memo/3/show">memo3</a></li>
+    @for ($i = 0; $i < 3; $i++)
+        <li><a href="{{route("show", $i + 1)}}">memo{{$i + 1}}</a></li>
+    @endfor
  </ul>
 </body>
 </html>
