@@ -9,9 +9,9 @@
 <body>
  <p>メモ一覧</p>
  <ul>
-    <li>memo1</li>
-    <li>memo2</li>
-    <li>memo3</li>
+    <li><a href="memo/1/show">memo1</a></li>
+    <li><a href="memo/2/show">memo2</a></li>
+    <li><a href="memo/3/show">memo3</a></li>
  </ul>
 </body>
 </html>
