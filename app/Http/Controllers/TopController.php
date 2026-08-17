@@ -1,73 +1,53 @@
 <?php
 
 namespace App\Http\Controllers;
+
+use App\Http\Requests\StoreMemoRequest;
+use App\Http\Requests\UpdateMemoRequest;
 use App\Models\Memo;
-use Illuminate\Http\Request;
 
 class TopController extends Controller
 {
     public function index()
     {
-        $memos = Memo::all();
-        return view("note/top",compact("memos"));
+        $memos = Memo::latest()->get();
+
+        return view('note.top', compact('memos'));
     }
 
     public function show(Memo $memo)
     {
-        return view("note/show", compact('memo'));
+        return view('note.show', compact('memo'));
     }
 
     public function store()
     {
-        return view("note/store");
+        return view('note.store');
     }
 
-    public function create(Memo $memo,Request $request)
+    public function create(StoreMemoRequest $request)
     {
-        $table = new Memo();
-        $table->memo = $request->memo;
-        $table->save();
+        Memo::create($request->validated());
 
-        $memos = Memo::all();
-        return view("note/top", compact('memos'));
+        return redirect()->route('top')->with('status', 'メモを作成しました。');
     }
 
     public function edit(Memo $memo)
     {
-        return view("note/edit", compact('memo'));
+        return view('note.edit', compact('memo'));
     }
 
-    public function update(Memo $memo,Request $request)
+    public function update(UpdateMemoRequest $request, Memo $memo)
     {
-        try {
-            $table = Memo::find($memo->id);
-            $table->memo = $request->memo;
-            $table->save();
+        $memo->update($request->validated());
 
-            // Memo::where('id', $memo->id)->update([
-            //     'memo' => $memo->data,
-            // ]);
-
-            $is_update = true;
-        } catch (\Throwable $th) {
-            $is_update = false;
-        }
-
-        return view("note/show", compact('memo',"is_update"));
+        return redirect()->route('show', $memo)->with('status', 'メモを更新しました。');
     }
 
     public function destroy(Memo $memo)
     {
-        try {
-            $table = Memo::find($memo->id);
-            $table->delete();
+        $memo->delete();
 
-            $is_delete = true;
-        } catch (\Throwable $th) {
-            $is_delete = false;
-        }
-
-        $memos = Memo::all();
-        return view("note/top", compact('memos',"is_delete"));
+        return redirect()->route('top')->with('status', 'メモを削除しました。');
     }
 }

@@ -3,21 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>top page</title>
+    <title>メモ一覧</title>
 </head>
 <body>
- <p>メモ一覧</p>
- <ul>
-    {{-- @for ($i = 0; $i < count($memos); $i++)
-        <li><a href="{{route("show", $i + 1)}}">memo{{$i + 1}}</a></li>
-    @endfor --}}
+    <h1>メモ一覧</h1>
+    @if (session('status'))
+        <p role="status">{{ session('status') }}</p>
+    @endif
 
-    @foreach ($memos as $memo)
+    <ul>
+        @forelse ($memos as $memo)
+            <li><a href="{{ route('show', $memo) }}">{{ $memo->memo }}</a></li>
+        @empty
+            <li>メモはまだありません。</li>
+        @endforelse
+    </ul>
 
-    <li><a href="{{route("show", $memo->id)}}">memo{{ $memo->id }}:{{ $memo->memo }}</a></li>
-    @endforeach
- </ul>
- <a href="{{route("store")}}">新規作成</a>
+    <a href="{{ route('store') }}">メモを作成する</a>
 </body>
 </html>

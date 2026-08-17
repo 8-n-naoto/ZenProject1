@@ -3,25 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>memo{{ $memo->id }}</title>
+    <title>メモ詳細</title>
 </head>
 <body>
-    @php
-        $is_updated = isset($is_update) && is_bool($is_update);
-    @endphp
-    @if ($is_updated)
-    <p>更新が完了しました。</p>
-    @elseif ($is_updated)
-    <p>更新に失敗しました</p>
+    @if (session('status'))
+        <p role="status">{{ session('status') }}</p>
     @endif
-    <p>内容</p>
+    <h1>メモ詳細</h1>
     <p>{{ $memo->memo }}</p>
-    <a href="{{ route("edit",$memo->id)}}">更新する</a>
-    <form action="{{route("destroy",$memo->id)}}" method="post">
+    <a href="{{ route('edit', $memo) }}">編集する</a>
+    <form action="{{ route('destroy', $memo) }}" method="post">
         @csrf
-        @method("DELETE")
-        <button>削除する</button>
+        @method('DELETE')
+        <button type="submit">削除する</button>
     </form>
+    <a href="{{ route('top') }}">一覧に戻る</a>
 </body>
 </html>

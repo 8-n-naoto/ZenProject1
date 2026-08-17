@@ -3,17 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>edit:memo{{ $memo->id }}</title>
+    <title>メモ編集</title>
 </head>
 <body>
-    <p>更新内容</p>
-    <p>更新前：{{ $memo->memo }}</p>
-    <form action="{{ route('update',$memo->id) }}" method="post">
+    <h1>メモを編集する</h1>
+    <form action="{{ route('update', $memo) }}" method="post">
         @csrf
-        @method("PATCH")
-        <label for="memo"><input type="text" name="memo" id="memo" placeholder="更新内容を入力してください"></label>
-        <button>更新する</button>
+        @method('PATCH')
+        <label for="memo">メモ</label>
+        <textarea name="memo" id="memo" rows="5" required maxlength="1000">{{ old('memo', $memo->memo) }}</textarea>
+        @error('memo')
+            <p role="alert">{{ $message }}</p>
+        @enderror
+        <button type="submit">更新する</button>
     </form>
+    <a href="{{ route('show', $memo) }}">詳細に戻る</a>
 </body>
 </html>
