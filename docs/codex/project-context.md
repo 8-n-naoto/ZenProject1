@@ -181,3 +181,11 @@
 - ローカル最終静的レビューでは、Migration の依存順、FK、nullable、UNIQUE、INDEX、SQLite トリガーおよび他 DB 用 CHECK、soft delete、金額・数量型、購入結果対象排他、`purchase_assignee_user_id`、予定数量スナップショット、既存 Migration 非変更を確認した。
 - Factory はイベント関連の参照整合性を保ち、`PurchaseResultFactory` は元の個人購入から `event_product_id` と `planned_quantity` を引き継ぐ。
 - `git diff --check` は成功。仮想環境での Migration / Test はユーザーが実行する役割分担であり、結果受領後に本ファイルへ反映する。
+
+### MySQL識別子長エラー対応（2026-08-18）
+
+- 仮想環境（Laravel 12.10.2 / PHP 8.2.32 / MySQL 8.0.46）で `2026_08_17_000003_create_purchase_tables` の実行中、MySQL の64文字識別子上限により失敗した。
+- 原因は `product_purchase_assignees_shared_purchase_item_id_user_id_unique`（65文字）の Laravel 自動生成 UNIQUE 名。
+- `2026_08_17_000003_create_purchase_tables.php` の業務構造は変更せず、複合 UNIQUE / INDEX に短い明示名を設定した。主な名前は `ppa_item_user_uq`、`spi_purchase_product_uq`、`prsu_result_user_uq`、`pp_event_product_user_uq`。
+- 全 Phase 1 Migration を確認し、64文字超の自動 UNIQUE / INDEX 名は他に存在しない。自動 FK 名の最長は58文字であり、MySQL上限内。
+- MySQL は DDL を暗黙コミットするため、失敗した未記録 Migration が途中までテーブルを作成している可能性がある。再実行前に `migrate:status` と、`000003` が作成するテーブルの存在を読み取り専用で確認する。途中テーブルが存在する場合は、破壊的操作をせず再実行前に対応を判断する。

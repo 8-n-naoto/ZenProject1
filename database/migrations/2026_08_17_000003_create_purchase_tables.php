@@ -16,8 +16,8 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->restrictOnDelete();
             $table->unsignedInteger('planned_quantity');
             $table->timestamps();
-            $table->unique(['event_id', 'event_product_id', 'user_id']);
-            $table->index(['user_id', 'event_id']);
+            $table->unique(['event_id', 'event_product_id', 'user_id'], 'pp_event_product_user_uq');
+            $table->index(['user_id', 'event_id'], 'pp_user_event_idx');
         });
 
         Schema::create('shared_purchases', function (Blueprint $table) {
@@ -27,7 +27,7 @@ return new class extends Migration
             $table->foreignId('created_by')->constrained('users')->restrictOnDelete();
             $table->text('note')->nullable();
             $table->timestamps();
-            $table->unique(['event_id', 'event_circle_id']);
+            $table->unique(['event_id', 'event_circle_id'], 'sp_event_circle_uq');
         });
 
         Schema::create('shared_purchase_items', function (Blueprint $table) {
@@ -37,7 +37,7 @@ return new class extends Migration
             $table->unsignedInteger('planned_quantity');
             $table->timestamps();
             $table->softDeletes();
-            $table->unique(['shared_purchase_id', 'event_product_id']);
+            $table->unique(['shared_purchase_id', 'event_product_id'], 'spi_purchase_product_uq');
         });
 
         Schema::create('circle_purchase_assignees', function (Blueprint $table) {
@@ -46,7 +46,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->restrictOnDelete();
             $table->unsignedInteger('assigned_quantity');
             $table->timestamps();
-            $table->unique(['shared_purchase_id', 'user_id']);
+            $table->unique(['shared_purchase_id', 'user_id'], 'cpa_purchase_user_uq');
         });
 
         Schema::create('product_purchase_assignees', function (Blueprint $table) {
@@ -55,7 +55,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->restrictOnDelete();
             $table->unsignedInteger('assigned_quantity');
             $table->timestamps();
-            $table->unique(['shared_purchase_item_id', 'user_id']);
+            $table->unique(['shared_purchase_item_id', 'user_id'], 'ppa_item_user_uq');
         });
 
         Schema::create('purchase_results', function (Blueprint $table) {
@@ -71,7 +71,7 @@ return new class extends Migration
             $table->timestamps();
             $table->unique('personal_purchase_id');
             $table->unique('shared_purchase_item_id');
-            $table->index(['event_product_id', 'status']);
+            $table->index(['event_product_id', 'status'], 'pr_product_status_idx');
         });
 
         $this->addPurchaseResultExclusivityConstraint();
@@ -83,7 +83,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->restrictOnDelete();
             $table->unsignedInteger('shortage_quantity');
             $table->timestamps();
-            $table->unique(['purchase_result_id', 'user_id']);
+            $table->unique(['purchase_result_id', 'user_id'], 'prsu_result_user_uq');
         });
 
         Schema::create('excess_takeovers', function (Blueprint $table) {
