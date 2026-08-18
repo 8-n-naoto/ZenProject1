@@ -22,6 +22,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/groups/{group}/invite/{user}', [GroupController::class, 'invite'])->name('groups.invite');
     Route::patch('/groups/{group}/members/{user}/role', [GroupController::class, 'updateMemberRole'])->name('groups.members.role.update');
 
+    Route::delete('/groups/{group}/members/leave', [GroupController::class, 'leave'])->name('groups.members.leave');
+    Route::delete('/groups/{group}/members/{user}/remove', [GroupController::class, 'removeMember'])->name('groups.members.remove');
+
     Route::get('/invitations', [InvitationController::class, 'index'])->name('invitations.index');
     Route::post('/invitations/{invitation}/accept', [InvitationController::class, 'accept'])->name('invitations.accept');
     Route::post('/invitations/{invitation}/decline', [InvitationController::class, 'decline'])->name('invitations.decline');

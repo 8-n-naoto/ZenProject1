@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 namespace App\Http\Controllers\Group;
 
@@ -214,6 +214,127 @@ class GroupController extends Controller
             $member->user_id . ' さんの役割を「' . $newRole . '」に変更しました。'
         );
     }
+
+    public function leave(Group $group): RedirectResponse
+    {
+        $member = $group->members()
+            ->where('users.id', auth()->id())
+            ->first();
+
+        abort_unless($member, 403);
+
+        $currentRole = $member->pivot->role;
+
+        if ($currentRole === Group::ROLE_HIGHEST_RESPONSIBLE) {
+            $count = $group->members()
+                ->wherePivot('role', Group::ROLE_HIGHEST_RESPONSIBLE)
+                ->wherePivotNull('left_at')
+                ->count();
+
+            if ($count <= 1) {
+                return back()->withErrors([
+                    'member' => '最高責任者は最低1人必要です。',
+                ]);
+            }
+        }
+
+        if ($currentRole === Group::ROLE_RESPONSIBLE) {
+            $count = $group->members()
+                ->wherePivot('role', Group::ROLE_RESPONSIBLE)
+                ->wherePivotNull('left_at')
+                ->count();
+
+            if ($count <= 1) {
+                return back()->withErrors([
+                    'member' => '責任者は最低1人必要です。',
+                ]);
+            }
+        }
+
+        $group->members()->updateExistingPivot(auth()->id(), [
+            'left_at' => now(),
+        ]);
+
+        return redirect()
+            ->route('groups.index')
+            ->with('status', 'グループから脱退しました。');
+    }
+
+    public function removeMember(Group $group, User $user): RedirectResponse
+    {
+        $operator = $group->members()
+            ->where('users.id', auth()->id())
+            ->first();
+
+        abort_unless($operator, 403);
+
+        $operatorRole = $operator->pivot->role;
+
+        abort_unless(
+            in_array($operatorRole, [
+                Group::ROLE_HIGHEST_RESPONSIBLE,
+                Group::ROLE_RESPONSIBLE,
+            ], true),
+            403
+        );
+
+        $target = $group->members()
+            ->where('users.id', $user->id)
+            ->first();
+
+        if (!$target) {
+            return back()->withErrors([
+                'member' => '指定されたユーザーはこのグループのメンバーではありません。',
+            ]);
+        }
+
+        $targetRole = $target->pivot->role;
+
+        if (
+            $operatorRole === Group::ROLE_RESPONSIBLE &&
+            $targetRole !== Group::ROLE_MEMBER
+        ) {
+            abort(403);
+        }
+
+        if ($targetRole === Group::ROLE_HIGHEST_RESPONSIBLE) {
+            $count = $group->members()
+                ->wherePivot('role', Group::ROLE_HIGHEST_RESPONSIBLE)
+                ->wherePivotNull('left_at')
+                ->count();
+
+            if ($count <= 1) {
+                return back()->withErrors([
+                    'member' => '最高責任者は最低1人必要です。',
+                ]);
+            }
+        }
+
+        if ($targetRole === Group::ROLE_RESPONSIBLE) {
+            $count = $group->members()
+                ->wherePivot('role', Group::ROLE_RESPONSIBLE)
+                ->wherePivotNull('left_at')
+                ->count();
+
+            if ($count <= 1) {
+                return back()->withErrors([
+                    'member' => '責任者は最低1人必要です。',
+                ]);
+            }
+        }
+
+        $group->members()->updateExistingPivot($user->id, [
+            'left_at' => now(),
+        ]);
+
+        return back()->with(
+            'status',
+            $user->user_id . ' さんをグループから除名しました。'
+        );
+    }
+
+
+
 
     private function ensureMember(Group $group): void
     {
