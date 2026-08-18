@@ -47,4 +47,21 @@ class User extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
         ];
     }
+
+    public function groups()
+    {
+        return $this->belongsToMany(Group::class, 'group_members')
+            ->withPivot(['role', 'joined_at', 'left_at'])
+            ->withTimestamps();
+    }
+
+    public function receivedInvitations()
+    {
+        return $this->hasMany(Invitation::class, 'invited_user_id');
+    }
+
+    public function sentInvitations()
+    {
+        return $this->hasMany(Invitation::class, 'invited_by');
+    }
 }

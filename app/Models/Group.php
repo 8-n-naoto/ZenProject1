@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 namespace App\Models;
 
@@ -17,5 +17,10 @@ class Group extends Model
         return $this->belongsToMany(User::class, 'group_members')
             ->withPivot(['role', 'joined_at', 'left_at'])
             ->withTimestamps();
+    }
+
+    public function invitations()
+    {
+        return $this->hasMany(Invitation::class);
     }
 }

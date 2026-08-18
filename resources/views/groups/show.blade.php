@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -10,6 +10,10 @@
 
     @if ($group->description)
         <p>{{ $group->description }}</p>
+    @endif
+
+    @if (session('status'))
+        <p role="status">{{ session('status') }}</p>
     @endif
 
     <h2>メンバー</h2>
@@ -24,6 +28,13 @@
         @endforeach
     </ul>
 
+    @if (in_array($myRole, ['最高責任者', '責任者'], true))
+        <p>
+            <a href="{{ route('groups.search-users', $group) }}">ユーザーを検索して招待</a>
+        </p>
+    @endif
+
+    <p><a href="{{ route('invitations.index') }}">招待一覧</a></p>
     <p><a href="{{ route('groups.index') }}">グループ一覧へ戻る</a></p>
 </body>
 </html>

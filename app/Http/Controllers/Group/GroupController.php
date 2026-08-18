@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 namespace App\Http\Controllers\Group;
 
@@ -64,12 +64,100 @@ class GroupController extends Controller
 
     public function show(Group $group): View
     {
+        $this->ensureMember($group);
+
         $group->load([
             'members' => function ($query) {
                 $query->withPivot(['role', 'joined_at', 'left_at']);
             },
         ]);
 
-        return view('groups.show', compact('group'));
+        $myRole = $group->members
+            ->firstWhere('id', auth()->id())
+            ?->pivot
+            ?->role;
+
+        return view('groups.show', compact('group', 'myRole'));
+    }
+
+    public function searchUsers(Request $request, Group $group): View
+    {
+        $this->ensureInviter($group);
+
+        $keyword = trim((string) $request->input('q', ''));
+        $users = collect();
+
+        if ($keyword !== '') {
+            $memberIds = $group->members()->pluck('users.id');
+
+            $pendingInvitationIds = $group->invitations()
+                ->where('status', 'pending')
+                ->pluck('invited_user_id');
+
+            $users = User::query()
+                ->where('user_id', 'like', $keyword . '%')
+                ->where('id', '!=', auth()->id())
+                ->whereNotIn('id', $memberIds)
+                ->whereNotIn('id', $pendingInvitationIds)
+                ->orderBy('user_id')
+                ->limit(20)
+                ->get();
+        }
+
+        return view('groups.search-users', compact('group', 'keyword', 'users'));
+    }
+
+    public function invite(Request $request, Group $group, User $user): RedirectResponse
+    {
+        $this->ensureInviter($group);
+
+        if ($user->id === auth()->id()) {
+            return back()->withErrors(['user' => '自分自身を招待することはできません。']);
+        }
+
+        if ($group->members()->where('users.id', $user->id)->exists()) {
+            return back()->withErrors(['user' => 'このユーザーはすでにグループのメンバーです。']);
+        }
+
+        $pendingExists = $group->invitations()
+            ->where('invited_user_id', $user->id)
+            ->where('status', 'pending')
+            ->exists();
+
+        if ($pendingExists) {
+            return back()->withErrors(['user' => 'このユーザーにはすでに招待を送信しています。']);
+        }
+
+        $group->invitations()->create([
+            'invited_user_id' => $user->id,
+            'invited_by' => auth()->id(),
+            'status' => 'pending',
+        ]);
+
+        return redirect()
+            ->route('groups.search-users', $group)
+            ->with('status', $user->user_id . ' さんに招待を送信しました。');
+    }
+
+    private function ensureMember(Group $group): void
+    {
+        abort_unless(
+            $group->members()->where('users.id', auth()->id())->exists(),
+            403
+        );
+    }
+
+    private function ensureInviter(Group $group): void
+    {
+        $role = $group->members()
+            ->where('users.id', auth()->id())
+            ->first()
+            ?->pivot
+            ?->role;
+
+        abort_unless(
+            in_array($role, ['最高責任者', '責任者'], true),
+            403
+        );
     }
 }
