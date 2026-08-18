@@ -19,4 +19,4 @@ return new class extends Migration
             $table->string('user_id', 15)->nullable()->change();
         });
     }
-}
+};
