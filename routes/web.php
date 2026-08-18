@@ -1,9 +1,11 @@
 <?php
 
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\TopController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\EmailVerificationController;
+
 
 Route::get('/', [TopController::class, 'index'])->name('top');
 Route::get('/memo/store', [TopController::class, 'store'])->name('store');
@@ -15,6 +17,10 @@ Route::delete('/memo/{memo}/destroy', [TopController::class, 'destroy'])->name('
 
 Route::get('/register', [RegisterController::class, 'create'])->name('register');
 Route::post('/register', [RegisterController::class, 'store'])->name('register.store');
+
+Route::get('/login', [LoginController::class, 'create'])->name('login');
+Route::post('/login', [LoginController::class, 'store'])->name('login.store');
+Route::post('/logout', [LoginController::class, 'destroy'])->middleware('auth')->name('logout');
 
 Route::get('/email/verify', [EmailVerificationController::class, 'notice'])
     ->middleware('auth')
