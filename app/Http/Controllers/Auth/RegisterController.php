@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
@@ -33,8 +34,10 @@ class RegisterController extends Controller
             'password' => Hash::make($validated['password']),
         ]);
 
+        Auth::login($user);
+
         $user->sendEmailVerificationNotification();
 
-        return redirect()->route('login');
+        return redirect()->route('verification.notice');
     }
 }
