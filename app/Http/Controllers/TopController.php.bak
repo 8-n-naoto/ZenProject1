@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 namespace App\Http\Controllers;
 
@@ -10,7 +10,9 @@ class TopController extends Controller
 {
     public function index()
     {
-        return view('dashboard');
+        $memos = Memo::latest()->get();
+
+        return view('note.top', compact('memos'));
     }
 
     public function show(Memo $memo)
