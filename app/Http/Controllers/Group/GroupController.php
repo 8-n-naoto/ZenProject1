@@ -310,18 +310,6 @@ class GroupController extends Controller
             }
         }
 
-        if ($targetRole === Group::ROLE_RESPONSIBLE) {
-            $count = $group->members()
-                ->wherePivot('role', Group::ROLE_RESPONSIBLE)
-                ->wherePivotNull('left_at')
-                ->count();
-
-            if ($count <= 1) {
-                return back()->withErrors([
-                    'member' => '責任者は最低1人必要です。',
-                ]);
-            }
-        }
 
         $group->members()->updateExistingPivot($user->id, [
             'left_at' => now(),
