@@ -38,13 +38,18 @@ class DatabaseSchemaTest extends TestCase
         ]));
     }
 
-    public function test_user_id_is_unique_and_existing_users_can_remain_null(): void
+    public function test_user_id_is_required(): void
     {
-        User::factory()->create(['user_id' => 'codex001']);
+        $this->expectException(QueryException::class);
         User::factory()->create(['user_id' => null]);
+    }
+
+    public function test_user_id_is_unique(): void
+    {
+        User::factory()->create(['user_id' => 'test001']);
 
         $this->expectException(QueryException::class);
-        User::factory()->create(['user_id' => 'codex001']);
+        User::factory()->create(['user_id' => 'test001']);
     }
 
     public function test_group_membership_cannot_be_duplicated(): void
