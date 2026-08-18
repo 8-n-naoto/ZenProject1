@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers\Group;
 
@@ -49,17 +49,19 @@ class GroupController extends Controller
 
             $group->members()->attach([
                 $highestResponsible->id => [
-                    'role' => '最高責任者',
+                    'role' => Group::ROLE_HIGHEST_RESPONSIBLE,
                     'joined_at' => now(),
                 ],
                 $responsible->id => [
-                    'role' => '責任者',
+                    'role' => Group::ROLE_RESPONSIBLE,
                     'joined_at' => now(),
                 ],
             ]);
         });
 
-        return redirect()->route('groups.index')->with('status', 'グループを作成しました。');
+        return redirect()
+            ->route('groups.index')
+            ->with('status', 'グループを作成しました。');
     }
 
     public function show(Group $group): View
@@ -112,11 +114,15 @@ class GroupController extends Controller
         $this->ensureInviter($group);
 
         if ($user->id === auth()->id()) {
-            return back()->withErrors(['user' => '自分自身を招待することはできません。']);
+            return back()->withErrors([
+                'user' => '自分自身を招待することはできません。',
+            ]);
         }
 
         if ($group->members()->where('users.id', $user->id)->exists()) {
-            return back()->withErrors(['user' => 'このユーザーはすでにグループのメンバーです。']);
+            return back()->withErrors([
+                'user' => 'このユーザーはすでにグループのメンバーです。',
+            ]);
         }
 
         $pendingExists = $group->invitations()
@@ -125,7 +131,9 @@ class GroupController extends Controller
             ->exists();
 
         if ($pendingExists) {
-            return back()->withErrors(['user' => 'このユーザーにはすでに招待を送信しています。']);
+            return back()->withErrors([
+                'user' => 'このユーザーにはすでに招待を送信しています。',
+            ]);
         }
 
         $group->invitations()->create([
@@ -137,6 +145,74 @@ class GroupController extends Controller
         return redirect()
             ->route('groups.search-users', $group)
             ->with('status', $user->user_id . ' さんに招待を送信しました。');
+    }
+
+    public function updateMemberRole(
+        Request $request,
+        Group $group,
+        User $user
+    ): RedirectResponse {
+        $this->ensureHighestResponsible($group);
+
+        $validated = $request->validate([
+            'role' => ['required', 'string', 'in:' . implode(',', Group::ROLES)],
+        ]);
+
+        $member = $group->members()
+            ->where('users.id', $user->id)
+            ->first();
+
+        if (!$member) {
+            return back()->withErrors([
+                'member' => '指定されたユーザーはこのグループのメンバーではありません。',
+            ]);
+        }
+
+        $currentRole = $member->pivot->role;
+        $newRole = $validated['role'];
+
+        if ($currentRole === $newRole) {
+            return back()->with('status', '役割に変更はありません。');
+        }
+
+        if (
+            $currentRole === Group::ROLE_HIGHEST_RESPONSIBLE &&
+            $newRole !== Group::ROLE_HIGHEST_RESPONSIBLE
+        ) {
+            $highestResponsibleCount = $group->members()
+                ->wherePivot('role', Group::ROLE_HIGHEST_RESPONSIBLE)
+                ->count();
+
+            if ($highestResponsibleCount <= 1) {
+                return back()->withErrors([
+                    'member' => '最高責任者は最低1人必要です。',
+                ]);
+            }
+        }
+
+        if (
+            $currentRole === Group::ROLE_RESPONSIBLE &&
+            $newRole !== Group::ROLE_RESPONSIBLE
+        ) {
+            $responsibleCount = $group->members()
+                ->wherePivot('role', Group::ROLE_RESPONSIBLE)
+                ->count();
+
+            if ($responsibleCount <= 1) {
+                return back()->withErrors([
+                    'member' => '責任者は最低1人必要です。',
+                ]);
+            }
+        }
+
+        $group->members()->updateExistingPivot($user->id, [
+            'role' => $newRole,
+        ]);
+
+        return back()->with(
+            'status',
+            $member->user_id . ' さんの役割を「' . $newRole . '」に変更しました。'
+        );
     }
 
     private function ensureMember(Group $group): void
@@ -156,7 +232,24 @@ class GroupController extends Controller
             ?->role;
 
         abort_unless(
-            in_array($role, ['最高責任者', '責任者'], true),
+            in_array($role, [
+                Group::ROLE_HIGHEST_RESPONSIBLE,
+                Group::ROLE_RESPONSIBLE,
+            ], true),
+            403
+        );
+    }
+
+    private function ensureHighestResponsible(Group $group): void
+    {
+        $role = $group->members()
+            ->where('users.id', auth()->id())
+            ->first()
+            ?->pivot
+            ?->role;
+
+        abort_unless(
+            $role === Group::ROLE_HIGHEST_RESPONSIBLE,
             403
         );
     }

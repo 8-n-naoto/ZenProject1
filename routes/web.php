@@ -20,6 +20,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/groups/{group}/search-users', [GroupController::class, 'searchUsers'])->name('groups.search-users');
     Route::post('/groups/{group}/invite/{user}', [GroupController::class, 'invite'])->name('groups.invite');
+    Route::patch('/groups/{group}/members/{user}/role', [GroupController::class, 'updateMemberRole'])->name('groups.members.role.update');
 
     Route::get('/invitations', [InvitationController::class, 'index'])->name('invitations.index');
     Route::post('/invitations/{invitation}/accept', [InvitationController::class, 'accept'])->name('invitations.accept');
