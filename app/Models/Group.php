@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Models;
 
@@ -11,4 +11,11 @@ class Group extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = ['name', 'description', 'image_path'];
+
+    public function members()
+    {
+        return $this->belongsToMany(User::class, 'group_members')
+            ->withPivot(['role', 'joined_at', 'left_at'])
+            ->withTimestamps();
+    }
 }
