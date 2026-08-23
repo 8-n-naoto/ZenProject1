@@ -1,53 +1,47 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>招待一覧</title>
-</head>
-<body>
-    <h1>招待一覧</h1>
+<x-app-layout title="招待" heading="招待">
+    <div class="space-y-4">
+        <section>
+            <h2 class="mb-2 px-1 text-sm font-semibold text-slate-700">返答待ち（{{ $pending->count() }}件）</h2>
 
-    @if (session('status'))
-        <p role="status">{{ session('status') }}</p>
-    @endif
+            @forelse ($pending as $invitation)
+                <div class="mb-2 rounded-2xl bg-white p-4 shadow-sm">
+                    <p class="text-sm font-semibold">{{ $invitation->group->name }}</p>
+                    <p class="mt-0.5 text-xs text-slate-500">
+                        {{ $invitation->inviter?->displayName() ?? '不明なユーザー' }} さんからの招待
+                        ・{{ $invitation->created_at->format('Y/m/d H:i') }}
+                    </p>
+                    <div class="mt-3 flex gap-2">
+                        <form method="POST" action="{{ route('invitations.accept', $invitation) }}" class="flex-1">
+                            @csrf
+                            <x-button class="w-full" size="sm">参加する</x-button>
+                        </form>
+                        <form method="POST" action="{{ route('invitations.decline', $invitation) }}" class="flex-1"
+                              onsubmit="return confirm('この招待を辞退します。参加するには招待し直してもらう必要があります。よろしいですか？');">
+                            @csrf
+                            <x-button variant="secondary" class="w-full" size="sm">辞退する</x-button>
+                        </form>
+                    </div>
+                </div>
+            @empty
+                <x-empty-state message="返答待ちの招待はありません" />
+            @endforelse
+        </section>
 
-    @if ($errors->any())
-        <ul>
-            @foreach ($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    @endif
-
-    @forelse ($invitations as $invitation)
-        <article>
-            <h2>{{ $invitation->group->name }}</h2>
-
-            <p>
-                招待者：
-                {{ $invitation->inviter->name }}
-                （{{ $invitation->inviter->user_id }}）
-            </p>
-
-            <p>状態：{{ $invitation->status }}</p>
-
-            @if ($invitation->status === 'pending')
-                <form method="POST" action="{{ route('invitations.accept', $invitation) }}">
-                    @csrf
-                    <button type="submit">承認する</button>
-                </form>
-
-                <form method="POST" action="{{ route('invitations.decline', $invitation) }}">
-                    @csrf
-                    <button type="submit">辞退する</button>
-                </form>
-            @endif
-        </article>
-    @empty
-        <p>招待はありません。</p>
-    @endforelse
-
-    <p><a href="{{ route('top') }}">ダッシュボードへ戻る</a></p>
-</body>
-</html>
+        @if ($history->isNotEmpty())
+            <section>
+                <h2 class="mb-2 px-1 text-sm font-semibold text-slate-700">これまでの招待</h2>
+                <div class="overflow-hidden rounded-2xl bg-white shadow-sm">
+                    @foreach ($history as $invitation)
+                        <div class="flex items-center gap-3 border-b border-slate-100 p-4 last:border-b-0">
+                            <div class="min-w-0 flex-1">
+                                <p class="truncate text-sm">{{ $invitation->group->name }}</p>
+                                <p class="text-xs text-slate-500">{{ optional($invitation->responded_at)->format('Y/m/d H:i') }}</p>
+                            </div>
+                            <x-badge :class="$invitation->status->badgeClass()">{{ $invitation->status->label() }}</x-badge>
+                        </div>
+                    @endforeach
+                </div>
+            </section>
+        @endif
+    </div>
+</x-app-layout>

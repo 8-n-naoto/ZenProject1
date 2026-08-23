@@ -1,61 +1,124 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# コミケ共同購入管理
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+コミックマーケットなどのイベントで、グループでの共同購入を「登録 → 担当 → 購入 → 支払い → 精算」まで
+一元管理するための Web アプリケーションです。スマートフォンでの利用を前提としたモバイルファースト設計です。
 
-## About Laravel
+## 主な機能
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- **認証**: ログインID（英小文字+数字）とパスワード、メールアドレス確認、パスワード再設定
+- **グループ**: 作成・編集・削除・画像、招待と承認、役割（最高責任者／責任者／一般メンバー）、脱退・除名・再加入
+- **イベント**: 6段階の状態管理（準備中 → 受付中 → 確定済 → 開催中 → 精算中 → 完了）、複数開催日、参加表明
+- **カタログ**: サークル・商品の登録（同一イベント内の同名サークルを重複検知）
+- **購入リスト**: 個人の購入希望、サークル単位の共同購入リスト、購入担当者の立候補と確定
+- **購入結果**: 実際に買えた数量の記録、不足分の割り当て、超過分の引き取り
+- **精算**: 貸し借りを相殺した最小回数の送金リストを自動生成、支払い報告 → 受取確認の2段階
+- **承認フロー**: 重要操作（確定・完了・再オープン・確定後の変更）を責任者以上の過半数で承認
+- **当日の買い物リスト**: 担当サークルを配置順に並べ、ワンタップで「買えた／買えなかった」を記録。進捗バー付き
+- **やること一覧**: 未返答の招待・未登録の購入希望・未登録の購入結果・未払いの精算・承認待ちをホームに集約
+- **通知・履歴**: アプリ内通知と未読バッジ、イベント単位の変更履歴
+- **画像**: グループ・サークルの配置マップ・商品の画像をアップロード
+- **イベントの複製**: 前回のサークル・商品を引き継いで新しいイベントを作成
+- **精算の共有**: チャットに貼り付けられるまとめテキストをワンタップでコピー
+- **未精算のまとめ**: 参加中の全グループを横断した「支払う・受け取る・差引」をホームと専用画面で確認
+- **前回の購入希望の取り込み**: 同じグループの過去イベントから、サークル名・商品名が一致する商品の希望をコピー
+- **CSVエクスポート**: 購入結果と精算リストを Excel で開けるCSVでダウンロード
+- **予算と残高**: 参加者ごとに予算を設定し、当日画面の上部に残高を常時表示。超過すると警告
+- **巡回ルート**: 完売しやすいサークルを先に回る順を提案。手動で並べ替えでき、テキストで共有できる
+- **会場マップ**: 会場図の上にサークルをプロット。拡大縮小でき、購入済／未購入で色分け
+- **招待リンク**: 合い言葉かリンクで参加。未登録の人も登録してそのまま参加できる
+- **電波が弱くても**: 入力中の内容を端末に保存し、圏外での送信は止める。オフライン時は最後に開いた買い物リストを表示
+- **ホーム画面に追加（PWA）**: アプリのように起動でき、オフライン時は専用の案内を表示
+- **配置マップの目印**: 配置図の画像をタップして、サークルの位置に目印を置ける
+- **画面スリープ防止**: 買い物リストで、列に並んでいる間も画面を点けたままにできる
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+仕様の詳細は `docs/claude/definition-of-done.md`（完成定義書）を参照してください。
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## 動作環境
 
-## Learning Laravel
+- PHP 8.2 以上
+- MySQL 8.0（開発・本番）／SQLite（テスト）
+- Composer
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+Node.js は必須ではありません（後述）。
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+## セットアップ
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+```bash
+composer install
+cp .env.example .env
+php artisan key:generate
 
-## Laravel Sponsors
+# .env の DB_* を設定してから
+php artisan migrate
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+# 画像アップロードを使う場合
+php artisan storage:link
 
-### Premium Partners
+# 動作確認用のデモデータ（任意）
+php artisan db:seed --class=DemoSeeder
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development/)**
-- **[Active Logic](https://activelogic.com)**
+php artisan serve
+```
 
-## Contributing
+デモデータのログインID: `owner001` / `leader01` / `buyer001` / `member01`（パスワードはいずれも `password`）
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## 定期実行（任意）
 
-## Code of Conduct
+開催日を迎えたイベントの自動進行と、購入希望・購入結果のリマインド通知を行います。
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```bash
+php artisan events:advance-scheduled          # 手動実行
+php artisan events:advance-scheduled --dry-run # 対象の確認だけ
+```
 
-## Security Vulnerabilities
+サーバーに次の1行を登録すると、`routes/console.php` のスケジュール（毎時）が動きます。
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```
+* * * * * cd /path/to/project && php artisan schedule:run >> /dev/null 2>&1
+```
 
-## License
+## テスト
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```bash
+php artisan test              # 全テスト
+php tools/lint-closures.php   # クロージャの use 漏れチェック
+./vendor/bin/pint             # コード整形
+```
+
+テストは SQLite のインメモリDBで動作するため、開発用データベースには影響しません。
+開発・テスト環境では Eloquent の遅延ロード（N+1クエリ）を検出して例外にしています。
+
+## スタイル（CSS）について
+
+画面は Tailwind のクラス名で記述していますが、npm レジストリを利用できない環境でも動作するよう、
+使用しているクラスだけを含む CSS を同梱しています。テンプレートを変更したら次のコマンドで再生成してください。
+
+```bash
+php tools/build-css.php     # public/css/app.css を再生成（Service Workerのキャッシュ名も更新）
+php tools/build-icons.php   # PWA用アイコン（public/icons）を再生成
+```
+
+Node.js が使える環境では、本家 Tailwind に切り替えられます。
+
+```bash
+npm install && npm run build   # public/build/ が生成され、レイアウトは自動的にそちらを使用します
+```
+
+## ディレクトリ構成の要点
+
+| パス | 役割 |
+| --- | --- |
+| `app/Enums` | 役割・イベント状態・各種ステータスの定義 |
+| `app/Policies` | 認可（グループ／イベント／カタログ／購入／精算） |
+| `app/Services` | 業務ロジック（メンバー管理・イベント・カタログ・購入・購入結果・精算・承認・通知・履歴） |
+| `app/Http/Requests` | 入力検証 |
+| `resources/views/components` | 共通レイアウトとUIコンポーネント |
+| `app/Console/Commands` | 定期実行コマンド |
+| `tools/build-css.php` | 同梱CSSのビルドスクリプト |
+| `tools/build-icons.php` | PWA用アイコンの生成スクリプト |
+| `docs/er-diagram.md` | ER図（Mermaid） |
+| `docs/screens.md` | 画面設計（ワイヤー・片手操作の決めごと） |
+| `docs/deployment.md` | 更新手順（git pull 以降の本番反映） |
+| `docs/settlement-methods.md` | 精算方法の調査（現金／送金アプリの比較と判断） |
+| `tools/lint-closures.php` | クロージャの use 漏れを検出する静的チェック |
+| `docs/claude/` | 完成定義書とプロジェクトの現状メモ |

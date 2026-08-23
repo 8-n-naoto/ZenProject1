@@ -2,23 +2,39 @@
 
 namespace App\Http\Controllers\Group;
 
+use App\Enums\GroupRole;
+use App\Enums\InvitationStatus;
+use App\Exceptions\BusinessRuleException;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Group\StoreGroupRequest;
+use App\Http\Requests\Group\UpdateGroupRequest;
+use App\Http\Requests\Group\UpdateMemberRoleRequest;
 use App\Models\Group;
 use App\Models\User;
+use App\Services\ChangeHistoryService;
+use App\Services\GroupMemberService;
+use App\Services\NotificationService;
+use App\Support\SearchKeyword;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class GroupController extends Controller
 {
+    public function __construct(
+        private readonly GroupMemberService $members,
+        private readonly NotificationService $notifications,
+        private readonly ChangeHistoryService $history,
+    ) {}
+
     public function index(): View
     {
-        $groups = Group::query()
-            ->whereHas('members', function ($query) {
-                $query->where('users.id', auth()->id());
-            })
-            ->latest()
+        $groups = auth()->user()
+            ->activeGroups()
+            ->withCount(['activeMembers as active_members_count'])
+            ->latest('groups.created_at')
             ->get();
 
         return view('groups.index', compact('groups'));
@@ -26,81 +42,148 @@ class GroupController extends Controller
 
     public function create(): View
     {
+        $this->authorize('create', Group::class);
+
         return view('groups.create');
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StoreGroupRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'highest_responsible_user_id' => ['required', 'integer', 'exists:users,id'],
-            'responsible_user_id' => ['required', 'integer', 'exists:users,id', 'different:highest_responsible_user_id'],
-        ]);
+        $this->authorize('create', Group::class);
 
-        DB::transaction(function () use ($validated) {
-            $highestResponsible = User::findOrFail($validated['highest_responsible_user_id']);
-            $responsible = User::findOrFail($validated['responsible_user_id']);
+        $group = DB::transaction(function () use ($request) {
+            $group = Group::create($request->safe()->only(['name', 'description']));
 
-            $group = Group::create([
-                'name' => $validated['name'],
-                'description' => $validated['description'] ?? null,
+            // 作成者は最高責任者として自動参加する。
+            $group->members()->attach($request->user()->id, [
+                'role' => GroupRole::HighestResponsible->value,
+                'joined_at' => now(),
             ]);
 
-            $group->members()->attach([
-                $highestResponsible->id => [
-                    'role' => Group::ROLE_HIGHEST_RESPONSIBLE,
-                    'joined_at' => now(),
-                ],
-                $responsible->id => [
-                    'role' => Group::ROLE_RESPONSIBLE,
-                    'joined_at' => now(),
-                ],
-            ]);
+            return $group;
         });
 
         return redirect()
-            ->route('groups.index')
-            ->with('status', 'グループを作成しました。');
+            ->route('groups.show', $group)
+            ->with('status', 'グループを作成しました。メンバーを招待して責任者を任命してください。');
     }
 
     public function show(Group $group): View
     {
-        $this->ensureMember($group);
+        $this->authorize('view', $group);
 
         $group->load([
-            'members' => function ($query) {
-                $query->withPivot(['role', 'joined_at', 'left_at']);
-            },
+            'activeMembers' => fn ($query) => $query->orderByPivot('joined_at'),
         ]);
 
-        $myRole = $group->members
-            ->firstWhere('id', auth()->id())
-            ?->pivot
-            ?->role;
+        // 最高責任者 → 責任者 → 一般メンバー の順に並べる
+        $group->setRelation('activeMembers', $group->activeMembers->sortByDesc(
+            fn ($member) => GroupRole::tryFrom((string) $member->pivot->role)?->rank() ?? 0
+        )->values());
 
-        return view('groups.show', compact('group', 'myRole'));
+        $myRole = $group->roleOf(auth()->user());
+        $pendingInvitations = $group->pendingInvitations()->with('invitedUser')->latest()->get();
+
+        $events = $group->events()
+            ->active()
+            ->with('days')
+            ->withCount('participants')
+            ->orderBy('starts_at')
+            ->limit(3)
+            ->get();
+
+        return view('groups.show', [
+            'group' => $group,
+            'myRole' => $myRole,
+            'events' => $events,
+            'pendingInvitations' => $pendingInvitations,
+            'needsResponsible' => $group->countActiveWithRole(GroupRole::Responsible) === 0,
+            'inviteLink' => app(\App\Services\GroupInviteLinkService::class)->currentFor($group),
+        ]);
+    }
+
+    public function edit(Group $group): View
+    {
+        $this->authorize('update', $group);
+
+        return view('groups.edit', compact('group'));
+    }
+
+    public function update(UpdateGroupRequest $request, Group $group): RedirectResponse
+    {
+        $this->authorize('update', $group);
+
+        $attributes = $request->safe()->only(['name', 'description']);
+
+        if ($request->boolean('remove_image')) {
+            $this->deleteImage($group);
+            $attributes['image_path'] = null;
+        }
+
+        if ($request->hasFile('image')) {
+            $this->deleteImage($group);
+            $attributes['image_path'] = $request->file('image')->store('groups', 'public');
+        }
+
+        $group->update($attributes);
+
+        return redirect()
+            ->route('groups.show', $group)
+            ->with('status', 'グループ情報を更新しました。');
+    }
+
+    public function destroy(Group $group): RedirectResponse
+    {
+        $this->authorize('delete', $group);
+
+        if ($group->events()->withTrashed()->exists()) {
+            return back()->withErrors([
+                'group' => 'イベントが登録されているグループは削除できません。先にイベントを整理してください。',
+            ]);
+        }
+
+        DB::transaction(function () use ($group) {
+            $group->members()->updateExistingPivot(
+                $group->activeMembers()->pluck('users.id')->all(),
+                ['left_at' => now()]
+            );
+            $group->pendingInvitations()->update([
+                'status' => \App\Enums\InvitationStatus::Cancelled->value,
+                'responded_at' => now(),
+            ]);
+            // 画像ファイルが残り続けないよう、レコードと一緒に消す
+            $this->deleteImage($group);
+            $group->delete();
+        });
+
+        return redirect()
+            ->route('groups.index')
+            ->with('status', 'グループを削除しました。');
+    }
+
+    private function deleteImage(Group $group): void
+    {
+        if ($group->image_path !== null && Storage::disk('public')->exists($group->image_path)) {
+            Storage::disk('public')->delete($group->image_path);
+        }
     }
 
     public function searchUsers(Request $request, Group $group): View
     {
-        $this->ensureInviter($group);
+        $this->authorize('invite', $group);
 
-        $keyword = trim((string) $request->input('q', ''));
+        $keyword = SearchKeyword::normalize($request->input('q'));
         $users = collect();
 
-        if ($keyword !== '') {
-            $memberIds = $group->members()->pluck('users.id');
-
-            $pendingInvitationIds = $group->invitations()
-                ->where('status', 'pending')
-                ->pluck('invited_user_id');
+        // 1文字だと総当たりで登録者を一覧できてしまうため、2文字以上を求める
+        if (mb_strlen($keyword) >= 2) {
+            $activeMemberIds = $group->activeMembers()->pluck('users.id');
+            $pendingInvitedIds = $group->pendingInvitations()->pluck('invited_user_id');
 
             $users = User::query()
-                ->where('user_id', 'like', $keyword . '%')
-                ->where('id', '!=', auth()->id())
-                ->whereNotIn('id', $memberIds)
-                ->whereNotIn('id', $pendingInvitationIds)
+                ->where('user_id', 'like', SearchKeyword::startsWith($keyword))
+                ->whereNotIn('id', $activeMemberIds)
+                ->whereNotIn('id', $pendingInvitedIds)
                 ->orderBy('user_id')
                 ->limit(20)
                 ->get();
@@ -109,151 +192,83 @@ class GroupController extends Controller
         return view('groups.search-users', compact('group', 'keyword', 'users'));
     }
 
-    public function invite(Request $request, Group $group, User $user): RedirectResponse
+    public function invite(Group $group, User $user): RedirectResponse
     {
-        $this->ensureInviter($group);
+        $this->authorize('invite', $group);
 
-        if ($user->id === auth()->id()) {
-            return back()->withErrors([
-                'user' => '自分自身を招待することはできません。',
-            ]);
+        if ($group->isActiveMember($user)) {
+            return back()->withErrors(['user' => 'このユーザーはすでにグループのメンバーです。']);
         }
 
-        if ($group->members()->where('users.id', $user->id)->exists()) {
-            return back()->withErrors([
-                'user' => 'このユーザーはすでにグループのメンバーです。',
-            ]);
-        }
-
-        $pendingExists = $group->invitations()
+        $pendingExists = $group->pendingInvitations()
             ->where('invited_user_id', $user->id)
-            ->where('status', 'pending')
             ->exists();
 
         if ($pendingExists) {
-            return back()->withErrors([
-                'user' => 'このユーザーにはすでに招待を送信しています。',
-            ]);
+            return back()->withErrors(['user' => 'このユーザーにはすでに招待を送信しています。']);
         }
 
-        $group->invitations()->create([
+        $invitation = $group->invitations()->create([
             'invited_user_id' => $user->id,
             'invited_by' => auth()->id(),
-            'status' => 'pending',
+            'status' => InvitationStatus::Pending,
         ]);
 
+        $this->notifications->notify(
+            [$user->id],
+            'invitation.received',
+            null,
+            ['group' => $group->name, 'inviter' => auth()->user()->displayName()]
+        );
+
+        $this->history->record(auth()->user(), $invitation, 'invitation.sent', ['target' => $user->user_id], $group);
+
         return redirect()
-            ->route('groups.search-users', $group)
-            ->with('status', $user->user_id . ' さんに招待を送信しました。');
+            ->route('groups.search-users', ['group' => $group, 'q' => $user->user_id])
+            ->with('status', $user->user_id.' さんに招待を送信しました。');
     }
 
     public function updateMemberRole(
-        Request $request,
+        UpdateMemberRoleRequest $request,
         Group $group,
         User $user
     ): RedirectResponse {
-        $this->ensureHighestResponsible($group);
+        $this->authorize('manageRoles', $group);
 
-        $validated = $request->validate([
-            'role' => ['required', 'string', 'in:' . implode(',', Group::ROLES)],
-        ]);
+        $newRole = GroupRole::from($request->validated('role'));
 
-        $member = $group->members()
-            ->where('users.id', $user->id)
-            ->first();
-
-        if (!$member) {
-            return back()->withErrors([
-                'member' => '指定されたユーザーはこのグループのメンバーではありません。',
-            ]);
+        try {
+            $changed = $this->members->changeRole($group, $user, $newRole);
+        } catch (BusinessRuleException $e) {
+            return back()->withErrors($e->toErrorBag());
         }
 
-        $currentRole = $member->pivot->role;
-        $newRole = $validated['role'];
-
-        if ($currentRole === $newRole) {
+        if (! $changed) {
             return back()->with('status', '役割に変更はありません。');
         }
 
-        if (
-            $currentRole === Group::ROLE_HIGHEST_RESPONSIBLE &&
-            $newRole !== Group::ROLE_HIGHEST_RESPONSIBLE
-        ) {
-            $highestResponsibleCount = $group->members()
-                ->wherePivot('role', Group::ROLE_HIGHEST_RESPONSIBLE)
-                ->count();
-
-            if ($highestResponsibleCount <= 1) {
-                return back()->withErrors([
-                    'member' => '最高責任者は最低1人必要です。',
-                ]);
-            }
-        }
-
-        if (
-            $currentRole === Group::ROLE_RESPONSIBLE &&
-            $newRole !== Group::ROLE_RESPONSIBLE
-        ) {
-            $responsibleCount = $group->members()
-                ->wherePivot('role', Group::ROLE_RESPONSIBLE)
-                ->count();
-
-            if ($responsibleCount <= 1) {
-                return back()->withErrors([
-                    'member' => '責任者は最低1人必要です。',
-                ]);
-            }
-        }
-
-        $group->members()->updateExistingPivot($user->id, [
-            'role' => $newRole,
-        ]);
+        $this->history->record(auth()->user(), $group, 'member.role_changed', [
+            'target' => $user->displayName(),
+            'to' => $newRole->label(),
+        ], $group);
 
         return back()->with(
             'status',
-            $member->user_id . ' さんの役割を「' . $newRole . '」に変更しました。'
+            $user->user_id.' さんの役割を「'.$newRole->label().'」に変更しました。'
         );
     }
 
     public function leave(Group $group): RedirectResponse
     {
-        $member = $group->members()
-            ->where('users.id', auth()->id())
-            ->first();
+        $this->authorize('leave', $group);
 
-        abort_unless($member, 403);
-
-        $currentRole = $member->pivot->role;
-
-        if ($currentRole === Group::ROLE_HIGHEST_RESPONSIBLE) {
-            $count = $group->members()
-                ->wherePivot('role', Group::ROLE_HIGHEST_RESPONSIBLE)
-                ->wherePivotNull('left_at')
-                ->count();
-
-            if ($count <= 1) {
-                return back()->withErrors([
-                    'member' => '最高責任者は最低1人必要です。',
-                ]);
-            }
+        try {
+            $this->members->leave($group, auth()->user());
+        } catch (BusinessRuleException $e) {
+            return back()->withErrors($e->toErrorBag());
         }
 
-        if ($currentRole === Group::ROLE_RESPONSIBLE) {
-            $count = $group->members()
-                ->wherePivot('role', Group::ROLE_RESPONSIBLE)
-                ->wherePivotNull('left_at')
-                ->count();
-
-            if ($count <= 1) {
-                return back()->withErrors([
-                    'member' => '責任者は最低1人必要です。',
-                ]);
-            }
-        }
-
-        $group->members()->updateExistingPivot(auth()->id(), [
-            'left_at' => now(),
-        ]);
+        $this->history->record(auth()->user(), $group, 'member.left', [], $group);
 
         return redirect()
             ->route('groups.index')
@@ -262,104 +277,16 @@ class GroupController extends Controller
 
     public function removeMember(Group $group, User $user): RedirectResponse
     {
-        $operator = $group->members()
-            ->where('users.id', auth()->id())
-            ->first();
+        $this->authorize('removeMember', [$group, $user]);
 
-        abort_unless($operator, 403);
-
-        $operatorRole = $operator->pivot->role;
-
-        abort_unless(
-            in_array($operatorRole, [
-                Group::ROLE_HIGHEST_RESPONSIBLE,
-                Group::ROLE_RESPONSIBLE,
-            ], true),
-            403
-        );
-
-        $target = $group->members()
-            ->where('users.id', $user->id)
-            ->first();
-
-        if (!$target) {
-            return back()->withErrors([
-                'member' => '指定されたユーザーはこのグループのメンバーではありません。',
-            ]);
+        try {
+            $this->members->remove($group, $user);
+        } catch (BusinessRuleException $e) {
+            return back()->withErrors($e->toErrorBag());
         }
 
-        $targetRole = $target->pivot->role;
+        $this->history->record(auth()->user(), $group, 'member.removed', ['target' => $user->displayName()], $group);
 
-        if (
-            $operatorRole === Group::ROLE_RESPONSIBLE &&
-            $targetRole !== Group::ROLE_MEMBER
-        ) {
-            abort(403);
-        }
-
-        if ($targetRole === Group::ROLE_HIGHEST_RESPONSIBLE) {
-            $count = $group->members()
-                ->wherePivot('role', Group::ROLE_HIGHEST_RESPONSIBLE)
-                ->wherePivotNull('left_at')
-                ->count();
-
-            if ($count <= 1) {
-                return back()->withErrors([
-                    'member' => '最高責任者は最低1人必要です。',
-                ]);
-            }
-        }
-
-
-        $group->members()->updateExistingPivot($user->id, [
-            'left_at' => now(),
-        ]);
-
-        return back()->with(
-            'status',
-            $user->user_id . ' さんをグループから除名しました。'
-        );
-    }
-
-
-
-
-    private function ensureMember(Group $group): void
-    {
-        abort_unless(
-            $group->members()->where('users.id', auth()->id())->exists(),
-            403
-        );
-    }
-
-    private function ensureInviter(Group $group): void
-    {
-        $role = $group->members()
-            ->where('users.id', auth()->id())
-            ->first()
-            ?->pivot
-            ?->role;
-
-        abort_unless(
-            in_array($role, [
-                Group::ROLE_HIGHEST_RESPONSIBLE,
-                Group::ROLE_RESPONSIBLE,
-            ], true),
-            403
-        );
-    }
-
-    private function ensureHighestResponsible(Group $group): void
-    {
-        $role = $group->members()
-            ->where('users.id', auth()->id())
-            ->first()
-            ?->pivot
-            ?->role;
-
-        abort_unless(
-            $role === Group::ROLE_HIGHEST_RESPONSIBLE,
-            403
-        );
+        return back()->with('status', $user->user_id.' さんをグループから除名しました。');
     }
 }

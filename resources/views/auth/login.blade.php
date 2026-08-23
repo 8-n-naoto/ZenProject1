@@ -1,66 +1,30 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ログイン</title>
-</head>
-<body>
-    <h1>ログイン</h1>
-
-    @if (session('message'))
-        <div>
-            {{ session('message') }}
-        </div>
-    @endif
-
-    @if ($errors->any())
-        <div>
-            <ul>
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
-
-    <form method="POST" action="{{ route('login.store') }}">
+<x-guest-layout title="ログイン">
+    <form method="POST" action="{{ route('login.store') }}" class="space-y-4">
         @csrf
 
-        <div>
-            <label for="user_id">ユーザーID</label>
-            <input
-                type="text"
-                id="user_id"
-                name="user_id"
-                value="{{ old('user_id') }}"
-                required
-                autofocus
-            >
-        </div>
+        <x-input name="user_id" label="ログインID" required autocomplete="username" autofocus />
+        <x-input name="password" label="パスワード" type="password" required autocomplete="current-password" />
 
-        <div>
-            <label for="password">パスワード</label>
-            <input
-                type="password"
-                id="password"
-                name="password"
-                required
-            >
-        </div>
+        <label class="flex items-center gap-2 text-sm text-slate-600">
+            <input type="checkbox" name="remember" value="1" class="h-4 w-4 rounded border-slate-300">
+            ログイン状態を保持する
+        </label>
 
-        <div>
-            <label>
-                <input type="checkbox" name="remember" value="1">
-                ログイン状態を保持する
-            </label>
-        </div>
+        <x-button class="w-full" size="lg">ログイン</x-button>
 
-        <button type="submit">ログイン</button>
+        <p class="text-center text-sm">
+            <a href="{{ route('password.request') }}" class="text-slate-500 underline">パスワードをお忘れですか？</a>
+        </p>
     </form>
 
-    <p>
-        <a href="{{ route('register') }}">新規登録はこちら</a>
-    </p>
-</body>
-</html>
+    <x-slot:footer>
+        <p class="mt-4 text-center text-sm text-slate-600">
+            アカウントをお持ちでない方は
+            <a href="{{ route('register') }}" class="font-semibold text-sky-600 underline">新規登録</a>
+        </p>
+        <p class="mt-2 text-center text-sm text-slate-600">
+            招待を受け取った方は
+            <a href="{{ route('join.form') }}" class="font-semibold text-sky-600 underline">招待から参加</a>
+        </p>
+    </x-slot:footer>
+</x-guest-layout>

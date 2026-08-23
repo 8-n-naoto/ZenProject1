@@ -1,8 +1,19 @@
 <?php
 
-use Illuminate\Foundation\Inspiring;
-use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schedule;
 
-Artisan::command('inspire', function () {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote');
+/*
+|--------------------------------------------------------------------------
+| スケジュール実行
+|--------------------------------------------------------------------------
+|
+| サーバー側で以下を1つ登録しておくと、下記のスケジュールが動きます。
+|
+|   * * * * * cd /path/to/project && php artisan schedule:run >> /dev/null 2>&1
+|
+*/
+
+// 開催日を迎えたイベントを自動で「開催中」にし、未登録の購入結果を担当者に通知する
+Schedule::command('events:advance-scheduled')
+    ->hourly()
+    ->withoutOverlapping();

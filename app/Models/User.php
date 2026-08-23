@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Enums\InvitationStatus;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -14,8 +17,6 @@ class User extends Authenticatable implements MustVerifyEmail
     use HasFactory, Notifiable, SoftDeletes;
 
     /**
-     * The attributes that are mass assignable.
-     *
      * @var list<string>
      */
     protected $fillable = [
@@ -26,8 +27,6 @@ class User extends Authenticatable implements MustVerifyEmail
     ];
 
     /**
-     * The attributes that should be hidden for serialization.
-     *
      * @var list<string>
      */
     protected $hidden = [
@@ -36,8 +35,6 @@ class User extends Authenticatable implements MustVerifyEmail
     ];
 
     /**
-     * Get the attributes that should be cast.
-     *
      * @return array<string, string>
      */
     protected function casts(): array
@@ -48,20 +45,68 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
-    public function groups()
+    /**
+     * 所属履歴を含む全てのグループ。認可には activeGroups() を使うこと。
+     */
+    public function groups(): BelongsToMany
     {
         return $this->belongsToMany(Group::class, 'group_members')
             ->withPivot(['role', 'joined_at', 'left_at'])
             ->withTimestamps();
     }
 
-    public function receivedInvitations()
+    /**
+     * 現在在籍しているグループのみ。
+     */
+    public function activeGroups(): BelongsToMany
+    {
+        return $this->groups()->wherePivotNull('left_at');
+    }
+
+    public function receivedInvitations(): HasMany
     {
         return $this->hasMany(Invitation::class, 'invited_user_id');
     }
 
-    public function sentInvitations()
+    public function pendingReceivedInvitations(): HasMany
+    {
+        return $this->receivedInvitations()->where('status', InvitationStatus::Pending->value);
+    }
+
+    public function appNotifications(): HasMany
+    {
+        return $this->hasMany(Notification::class);
+    }
+
+    public function sentInvitations(): HasMany
     {
         return $this->hasMany(Invitation::class, 'invited_by');
+    }
+
+    /**
+     * 画面表示用の名前。name が未設定ならログインIDを使う。
+     */
+    public function displayName(): string
+    {
+        $name = $this->name !== null && $this->name !== '' ? $this->name : (string) $this->user_id;
+
+        // 退会済みでも過去の記録に名前が残るため、そうと分かるようにする
+        return $this->trashed() ? $name.'（退会済み）' : $name;
+    }
+
+    /**
+     * 退会済みかどうか。
+     */
+    public function hasLeftService(): bool
+    {
+        return $this->trashed();
+    }
+
+    /**
+     * アバター用のイニシャル。
+     */
+    public function initial(): string
+    {
+        return mb_substr($this->displayName(), 0, 1);
     }
 }

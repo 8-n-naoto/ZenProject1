@@ -1,25 +1,21 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>メールアドレス確認</title>
-</head>
-<body>
-    <h1>メールアドレス確認</h1>
+<x-guest-layout title="メールアドレスの確認">
+    <div class="space-y-4">
+        <p class="text-sm text-slate-600">
+            登録したメールアドレス宛に認証リンクを送信しました。
+            メール内のリンクを開くと、ご利用を開始できます。
+        </p>
+        <p class="text-sm text-slate-500">
+            メールが届かない場合は、迷惑メールフォルダをご確認のうえ、下のボタンから再送信してください。
+        </p>
 
-    <p>登録したメールアドレスに確認メールを送信しました。</p>
-    <p>メールに記載されたリンクをクリックして、メールアドレスの確認を完了してください。</p>
+        <form method="POST" action="{{ route('verification.send') }}">
+            @csrf
+            <x-button class="w-full">認証メールを再送信</x-button>
+        </form>
 
-    @if (session('message'))
-        <div>
-            {{ session('message') }}
-        </div>
-    @endif
-
-    <form method="POST" action="{{ route('verification.send') }}">
-        @csrf
-        <button type="submit">確認メールを再送信</button>
-    </form>
-</body>
-</html>
+        <form method="POST" action="{{ route('logout') }}">
+            @csrf
+            <x-button variant="ghost" class="w-full">ログアウト</x-button>
+        </form>
+    </div>
+</x-guest-layout>

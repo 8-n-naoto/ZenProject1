@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Enums\InvitationStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Invitation extends Model
 {
@@ -20,22 +22,28 @@ class Invitation extends Model
     protected function casts(): array
     {
         return [
+            'status' => InvitationStatus::class,
             'responded_at' => 'datetime',
         ];
     }
 
-    public function group()
+    public function group(): BelongsTo
     {
-        return $this->belongsTo(Group::class);
+        return $this->belongsTo(Group::class)->withTrashed();
     }
 
-    public function invitedUser()
+    public function invitedUser(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'invited_user_id');
+        return $this->belongsTo(User::class, 'invited_user_id')->withTrashed();
     }
 
-    public function inviter()
+    public function inviter(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'invited_by');
+        return $this->belongsTo(User::class, 'invited_by')->withTrashed();
+    }
+
+    public function isPending(): bool
+    {
+        return $this->status === InvitationStatus::Pending;
     }
 }

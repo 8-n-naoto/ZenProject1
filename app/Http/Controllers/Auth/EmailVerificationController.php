@@ -18,22 +18,33 @@ class EmailVerificationController extends Controller
     public function verify(EmailVerificationRequest $request): RedirectResponse
     {
         if ($request->user()->hasVerifiedEmail()) {
-            return redirect()->route('top');
+            return redirect()->route('dashboard');
         }
 
         $request->fulfill();
 
-        return redirect()->route('top')->with('message', 'メールアドレスの認証が完了しました。');
+        return redirect()->to($this->afterVerifyRedirect($request))
+            ->with('status', 'メールアドレスの認証が完了しました。');
     }
 
     public function send(Request $request): RedirectResponse
     {
         if ($request->user()->hasVerifiedEmail()) {
-            return redirect()->route('top');
+            return redirect()->route('dashboard');
         }
 
         $request->user()->sendEmailVerificationNotification();
 
-        return back()->with('message', '認証メールを再送信しました。');
+        return back()->with('status', '認証メールを再送信しました。');
+    }
+
+    /**
+     * 招待リンクから登録した場合は、認証後にその招待へ戻す。
+     */
+    private function afterVerifyRedirect(Request $request): string
+    {
+        $token = $request->session()->get(\App\Http\Controllers\Group\JoinController::SESSION_KEY);
+
+        return $token ? route('join.show', $token) : route('dashboard');
     }
 }
