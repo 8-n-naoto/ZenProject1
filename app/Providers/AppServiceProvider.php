@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\Event;
 use App\Models\EventCircle;
 use App\Models\Group;
+use App\Models\Payment;
 use App\Models\Settlement;
 use App\Models\SharedPurchase;
 use App\Models\SharedPurchaseItem;
@@ -37,6 +38,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(SharedPurchase::class, PurchasePolicy::class);
         Gate::policy(SharedPurchaseItem::class, PurchasePolicy::class);
         Gate::policy(Settlement::class, SettlementPolicy::class);
+        Gate::policy(Payment::class, SettlementPolicy::class);
 
         Carbon::setLocale(config('app.locale'));
 

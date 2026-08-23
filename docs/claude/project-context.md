@@ -206,6 +206,11 @@ php artisan serve
 | 配列パラメータに件数上限が無く、1件1クエリで数千クエリ発行できる | `max:` を追加し、購入希望の保存は商品をまとめて取得する |
 | 範囲外のページ番号が「99999 / 2」と表示される | `x-paginator` で範囲外を検知して案内を出す |
 
+### 動作確認での指摘と対応（2026-08-23 第14弾）
+| 指摘 | 対応 |
+| --- | --- |
+| 精算で支払い報告はできるが、受け取る側に「受け取った」ボタンが表示されず受取確認ができない | `Payment::class` の Policy が未登録で、ビューの `can('confirm', $payment)` が常に false だった。`AppServiceProvider` に `Gate::policy(Payment::class, SettlementPolicy::class)` を追加。ボタン表示を画面描画で検証する回帰テストを `SettlementTest` に追加（POST 直叩きのテストでは検出できなかった） |
+
 ### Notionタスクの消化（2026-08-23）
 | 機能 | 実装 |
 | --- | --- |

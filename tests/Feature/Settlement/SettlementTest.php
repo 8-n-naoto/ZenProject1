@@ -251,6 +251,33 @@ class SettlementTest extends TestCase
         $this->assertSame(3000, $balances[$participants[1]->id]);
     }
 
+    public function test_confirm_buttons_are_shown_to_the_payee_after_a_report(): void
+    {
+        ['event' => $event, 'a' => $a, 'b' => $b] = $this->scenario();
+        $settlement = Settlement::with(['payer', 'payee'])->first();
+
+        // 報告前は受取確認ボタンが出ない
+        $this->actingAs($b)
+            ->get(route('settlements.index', $event))
+            ->assertOk()
+            ->assertDontSee('受け取った');
+
+        $this->actingAs($a)->post(route('settlements.report', $settlement));
+
+        // 報告後、受け取る本人には確認・差し戻しボタンが表示される
+        $this->actingAs($b)
+            ->get(route('settlements.index', $event))
+            ->assertOk()
+            ->assertSee('受け取った')
+            ->assertSee('まだ受け取っていない');
+
+        // 支払った側には表示されない
+        $this->actingAs($a)
+            ->get(route('settlements.index', $event))
+            ->assertOk()
+            ->assertDontSee('まだ受け取っていない');
+    }
+
     public function test_screens_render(): void
     {
         ['event' => $event, 'a' => $a] = $this->scenario();
