@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\Theme;
 use App\Http\Requests\Profile\UpdatePasswordRequest;
 use App\Http\Requests\Profile\UpdateProfileRequest;
 use App\Services\AccountDeletionGuard;
@@ -11,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
@@ -43,7 +45,25 @@ class ProfileController extends Controller
             'events' => $events,
             'stats' => $stats,
             'deletionReasons' => $this->deletionGuard->reasons($user),
+            'themes' => Theme::options(),
+            'currentTheme' => $user->preferredTheme(),
         ]);
+    }
+
+    /**
+     * 画面の見た目を切り替える。保存するのは表示設定だけで、業務データには影響しない。
+     */
+    public function updateTheme(Request $request): RedirectResponse
+    {
+        $validated = $request->validate(
+            ['theme' => ['required', Rule::enum(Theme::class)]],
+            [],
+            ['theme' => 'デザイン']
+        );
+
+        $request->user()->update(['theme' => $validated['theme']]);
+
+        return redirect()->route('profile.edit')->with('status', 'デザインを変更しました。');
     }
 
     public function update(UpdateProfileRequest $request): RedirectResponse

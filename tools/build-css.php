@@ -469,6 +469,29 @@ echo 'generated '.$count.' rules -> '.str_replace($root.'/', '', $outFile).' ('.
 
 /*
 |--------------------------------------------------------------------------
+| テーマ層を public へ複写する
+|--------------------------------------------------------------------------
+| resources/css/theme.css が正。手書きのCSSなので生成はしないが、
+| public/ を「ビルド成果物だけが置かれる場所」に保つため、ここで写す。
+| Service Worker のキャッシュ名の計算より前に行う必要がある。
+*/
+$themeSrc = $root.'/resources/css/theme.css';
+$themeDest = $root.'/public/css/theme.css';
+
+if (is_file($themeSrc)) {
+    $current = is_file($themeDest) ? file_get_contents($themeDest) : null;
+    $next = file_get_contents($themeSrc);
+
+    if ($current !== $next) {
+        file_put_contents($themeDest, $next);
+        echo 'copied theme -> public/css/theme.css ('.number_format(strlen($next)).' bytes)'.PHP_EOL;
+    } else {
+        echo 'theme stylesheet is up to date'.PHP_EOL;
+    }
+}
+
+/*
+|--------------------------------------------------------------------------
 | Service Worker のキャッシュ名を更新する
 |--------------------------------------------------------------------------
 | sw.js はプリキャッシュした静的ファイルを「キャッシュ優先」で返す。

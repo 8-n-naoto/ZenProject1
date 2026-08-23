@@ -15,6 +15,7 @@
 - ビュー: Blade。**共通レイアウト `resources/views/components/app-layout.blade.php`** に統一（ゲスト画面は `guest-layout`）
 - CSS: **Tailwind のクラス名で記述**し、`php tools/build-css.php` が使用クラスだけの `public/css/app.css` を生成する。
   Node が使える環境では `npm run build` で本家 Tailwind に切り替わる（レイアウトが `public/build/manifest.json` の有無で自動判定）
+- 見た目（配色・書体・角丸）はユーザーが3種類から選ぶ。`resources/css/theme.css` が `app.css` の後に重なる（→ 9章「見た目の切り替え」）
 - ロケール: `ja`。`lang/ja/` にバリデーション・認証・パスワードのメッセージ
 - 認可: **Policy に一元化**（`Gate::policy` を `AppServiceProvider` で登録）
 - 業務ロジックは `app/Services/` に集約。ルール違反は `BusinessRuleException` で表現し、コントローラでフォームエラーに変換する
@@ -23,12 +24,13 @@
 
 | パス | 内容 |
 | --- | --- |
-| `app/Enums` | GroupRole / InvitationStatus / EventStatus / ProductStatus / PurchaseResultStatus / PaymentStatus / SettlementStatus / ApprovalStatus / ApprovalActionType |
+| `app/Enums` | GroupRole / InvitationStatus / EventStatus / ProductStatus / PurchaseResultStatus / PaymentStatus / SettlementStatus / ApprovalStatus / ApprovalActionType / Theme |
 | `app/Policies` | GroupPolicy / EventPolicy / EventCirclePolicy / PurchasePolicy / SettlementPolicy |
 | `app/Services` | GroupMemberService / EventService / CatalogService / PurchaseListService / PurchaseResultService / SettlementService / ApprovalService / NotificationService / ChangeHistoryService / AccountDeletionGuard |
 | `app/Support` | TextNormalizer（サークル名の表記ゆれ吸収） |
 | `resources/views/components` | app-layout / guest-layout / bottom-nav / card / button / input / textarea / badge / avatar / alert / empty-state / group-icon / event-card / event-steps / styles |
-| `tools/build-css.php` | 同梱CSSのビルド |
+| `tools/build-css.php` | 同梱CSSのビルド、テーマCSSの複写、Service Worker のキャッシュ名更新 |
+| `resources/css/theme.css` | 見た目の切り替え（`--zt-*` トークンと既存ユーティリティの読み替え）。手書き。`public/css/theme.css` は複写物 |
 
 ## 3. ドメインモデルの考え方
 
@@ -226,9 +228,31 @@ php artisan serve
 | 電波対策 | `x-offline-guard`（入力の保存・復元、圏外送信の抑止、圏外バナー）と、買い物リストの控えを `offline.html` で表示 |
 | 全画面の描画確認 | `tests/Feature/AllScreensRenderTest.php`。GETルートを自動で列挙して描画し、500 が出ないことを確認する（ルートを足すと自動で対象に入る） |
 
+### 見た目の切り替え（2026-08-23）
+| 機能 | 実装 |
+| --- | --- |
+| 3種類のデザインをユーザーごとに選べる | `App\Enums\Theme`（soft / venue / editorial）と `users.theme`。アカウント画面の「デザイン」カードから切り替える（`profile.theme.update`）。既定は `soft` |
+
+考え方: **Blade のクラス名は一切変えていない**。`resources/css/theme.css` が
+`html[data-theme="…"]` ごとに `--zt-*` の意味づけトークン（背景・面・文字・アクセント・角丸・影・書体）を定義し、
+既存の Tailwind ユーティリティクラス（`.bg-white` `.text-slate-500` `.bg-sky-600` など）をそのトークンに読み替える。
+`app.css` より **後に** 読み込むこと、および `html[data-theme]` を前置して詳細度で勝つことが前提になっている。
+ヘッダ・本文・下部ナビは `data-app-header` / `data-app-main` / `data-app-nav` で指し、クラス名に依存しない。
+
+注意点:
+- 詳細度はクラスが型セレクタより強い。`body` を塗るには `html[data-theme] body.bg-slate-100` のように
+  相手と同じだけクラスを含める必要がある（`html[data-theme] body` だけでは負ける）
+- 塗りつぶし面（`.bg-sky-600` など）は背景色と文字色を同時に指定するため、
+  文字色の読み替えより **後ろ** に書く。順番を入れ替えると venue（暗色）で文字が白のまま潰れる
+- `users.theme` は Eloquent の enum キャストを使わない。壊れた値でも `Theme::fromValue()` が既定に落とすため、
+  DBを手で書き換えても画面が落ちない
+- 書体は Google Fonts。読めない環境では `theme.css` 側のフォールバックで端末標準の書体になる
+- `resources/css/theme.css` が正。`php tools/build-css.php` が `public/css/theme.css` へ複写する。
+  複写漏れは `tests/Feature/Account/ThemeTest.php` が内容一致で検出する
+
 ドキュメント: `docs/er-diagram.md` / `docs/screens.md` / `docs/deployment.md`（更新手順） / `docs/settlement-methods.md`
 
-**デプロイ時の注意**: `php tools/build-css.php` は CSS の再生成に加えて、
+**デプロイ時の注意**: `php tools/build-css.php` は CSS の再生成と `resources/css/theme.css` の複写に加えて、
 `public/sw.js` のキャッシュ名をプリキャッシュ対象の内容ハッシュで書き換える。
 これを飛ばすと Service Worker が古いCSS・古いオフライン案内を返し続ける。
 `tests/Feature/PwaTest.php` でキャッシュ名と中身の一致を検証している。

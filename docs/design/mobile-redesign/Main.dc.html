@@ -1,0 +1,60 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; font-family: -apple-system, "Hiragino Sans", "Noto Sans JP", "Yu Gothic", sans-serif; }
+    a { color: #0369a1; } a:hover { color: #075985; }
+  </style>
+</helmet>
+<div style="width: 420px; min-height: 640px; background: #ffffff; color: #0f172a; padding: 36px 32px; box-sizing: border-box; display: flex; flex-direction: column; gap: 24px">
+  <div>
+    <p style="margin: 0; font-size: 12px; font-weight: 600; letter-spacing: 0.14em; color: #64748b">コミケ共同購入管理</p>
+    <h1 style="margin: 6px 0 0; font-size: 24px; font-weight: 700; line-height: 1.35">モバイル刷新<br>デザイン方向性の比較</h1>
+    <p style="margin: 10px 0 0; font-size: 13px; line-height: 1.7; color: #475569">機能・画面構成は現行のまま、見た目と導線をモダンにする3案です。右の各列で「ホーム」と「買い物リスト」を同じ内容で描き分けています。気に入った方向を選んでください。組み合わせ（例: Aの配色 × Cの密度）も可能です。</p>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 14px">
+    <div style="border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px 18px">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <span style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 999px; background: #ee8b3f; color: #fff; font-size: 14px; font-weight: 700">A</span>
+        <h2 style="margin: 0; font-size: 15px; font-weight: 700">ソフト＆ラウンド</h2>
+      </div>
+      <p style="margin: 10px 0 0; font-size: 12.5px; line-height: 1.7; color: #475569">丸ゴシック＋あたたかい配色＋大きな角丸。お金のやり取りの緊張感をやわらげ、初めてのメンバーにも親しみやすい。</p>
+      <p style="margin: 6px 0 0; font-size: 12px; line-height: 1.6; color: #94a3b8">注意点: 柔らかい分、情報密度は3案で最も低め。長いリストでは縦に伸びやすい。</p>
+    </div>
+
+    <div style="border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px 18px">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <span style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 999px; background: #15181d; color: #c9ef5a; font-size: 14px; font-weight: 700">B</span>
+        <h2 style="margin: 0; font-size: 15px; font-weight: 700">会場モード（ダーク）</h2>
+      </div>
+      <p style="margin: 10px 0 0; font-size: 12.5px; line-height: 1.7; color: #475569">当日の会場利用に全振りしたダークテーマ。大きな数字と高コントラスト、OLEDでの省電力。下部ナビ中央に「当日」ボタンを置き、買い物リストへ1タップで届く導線に変更。</p>
+      <p style="margin: 6px 0 0; font-size: 12px; line-height: 1.6; color: #94a3b8">注意点: 直射日光下ではライトテーマより読みにくい場面がある。自宅での事前準備にはやや重い雰囲気。</p>
+    </div>
+
+    <div style="border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px 18px">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <span style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 999px; background: #f4f2ed; color: #17181a; border: 1px solid #d6d3cc; font-size: 14px; font-weight: 700; box-sizing: border-box">C</span>
+        <h2 style="margin: 0; font-size: 15px; font-weight: 700">ミニマル・エディトリアル</h2>
+      </div>
+      <p style="margin: 10px 0 0; font-size: 12.5px; line-height: 1.7; color: #475569">カードと影をやめ、罫線とタイポグラフィで組む紙面風。金額を大きな細身の数字で見せ、情報密度が最も高い。スクリーンショット共有時も紙の明細のように読める。</p>
+      <p style="margin: 6px 0 0; font-size: 12px; line-height: 1.6; color: #94a3b8">注意点: 状態色が控えめなので、ひと目の華やかさや「押せる場所」の分かりやすさはA・Bに譲る。</p>
+    </div>
+  </div>
+
+  <p style="margin: 0; font-size: 11.5px; line-height: 1.6; color: #94a3b8">共通の前提: 幅390px基準・タップ領域44px以上・下部ナビはsafe-area対応・破壊的操作は確認ダイアログ、という現行の決めごとは3案とも維持しています。</p>
+</div>
+</x-dc>
+<script data-dc-script data-props='{}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

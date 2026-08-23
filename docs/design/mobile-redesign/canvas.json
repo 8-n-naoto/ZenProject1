@@ -1,0 +1,12 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "x": 0, "y": 120, "w": 420, "h": 640, "title": "はじめに（3案の比較）" },
+    { "file": "A-Home.dc.html", "x": 540, "y": 0, "w": 390, "h": 880, "title": "A ホーム" },
+    { "file": "A-Shopping.dc.html", "x": 540, "y": 980, "w": 390, "h": 1500, "title": "A 買い物リスト" },
+    { "file": "B-Home.dc.html", "x": 1030, "y": 0, "w": 390, "h": 880, "title": "B ホーム" },
+    { "file": "B-Shopping.dc.html", "x": 1030, "y": 980, "w": 390, "h": 1500, "title": "B 買い物リスト" },
+    { "file": "C-Home.dc.html", "x": 1520, "y": 0, "w": 390, "h": 880, "title": "C ホーム" },
+    { "file": "C-Shopping.dc.html", "x": 1520, "y": 980, "w": 390, "h": 1500, "title": "C 買い物リスト" }
+  ],
+  "launch": { "view": "canvas" }
+}

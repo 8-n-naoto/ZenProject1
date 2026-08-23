@@ -1,10 +1,15 @@
 @props(['code', 'title', 'message'])
 
+@php
+    $theme = \App\Enums\Theme::current();
+@endphp
+
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="ja" data-theme="{{ $theme->value }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="{{ $theme->themeColor() }}">
     <title>{{ $title }}</title>
     <x-styles />
 </head>

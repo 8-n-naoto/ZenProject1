@@ -1,11 +1,15 @@
 @props(['title' => 'コミケ共同購入管理'])
 
+@php
+    $theme = \App\Enums\Theme::current();
+@endphp
+
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="ja" data-theme="{{ $theme->value }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta name="theme-color" content="#0284c7">
+    <meta name="theme-color" content="{{ $theme->themeColor() }}">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="共同購入">
     <title>{{ $title }}</title>

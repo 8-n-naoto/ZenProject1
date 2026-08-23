@@ -108,7 +108,8 @@ class AccessibilityTest extends TestCase
         $this->actingAs($user)
             ->get(route('dashboard'))
             ->assertOk()
-            ->assertSee('<html lang="ja">', false)
+            // html 要素には見た目の指定（data-theme）も付くため、属性の前方一致で見る
+            ->assertSee('<html lang="ja"', false)
             ->assertSee('本文へスキップ');
     }
 

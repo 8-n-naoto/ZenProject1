@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\InvitationStatus;
+use App\Enums\Theme;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -24,6 +25,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'user_id',
         'email',
         'password',
+        'theme',
     ];
 
     /**
@@ -108,5 +110,13 @@ class User extends Authenticatable implements MustVerifyEmail
     public function initial(): string
     {
         return mb_substr($this->displayName(), 0, 1);
+    }
+
+    /**
+     * 選んでいる画面の見た目。未設定・不正な値なら既定のテーマ。
+     */
+    public function preferredTheme(): Theme
+    {
+        return Theme::fromValue($this->theme);
     }
 }

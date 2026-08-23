@@ -5,13 +5,17 @@
     'wide' => false,
 ])
 
+@php
+    $theme = \App\Enums\Theme::current();
+@endphp
+
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="ja" data-theme="{{ $theme->value }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="theme-color" content="#0284c7">
+    <meta name="theme-color" content="{{ $theme->themeColor() }}">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="共同購入">
     <title>{{ $title }}</title>
@@ -26,7 +30,7 @@
         本文へスキップ
     </a>
 
-    <header class="fixed top-0 left-0 right-0 z-40 bg-white border-b border-slate-200">
+    <header data-app-header class="fixed top-0 left-0 right-0 z-40 bg-white border-b border-slate-200">
         <div class="mx-auto flex h-14 max-w-3xl items-center gap-2 px-3">
             @if ($back)
                 <a href="{{ $back }}" class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100" aria-label="戻る">
@@ -42,7 +46,7 @@
         </div>
     </header>
 
-    <main id="main" class="mx-auto {{ $wide ? 'max-w-5xl' : 'max-w-3xl' }} px-3 pb-24 pt-20">
+    <main id="main" data-app-main class="mx-auto {{ $wide ? 'max-w-5xl' : 'max-w-3xl' }} px-3 pb-24 pt-20">
         <x-alert />
         {{ $slot }}
     </main>

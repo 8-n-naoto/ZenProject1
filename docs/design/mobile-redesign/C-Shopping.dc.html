@@ -1,0 +1,196 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@300;400;500;700;900&display=swap">
+  <style>
+    body { margin: 0; font-family: "Zen Kaku Gothic New", -apple-system, "Hiragino Sans", "Yu Gothic", sans-serif; }
+    a { color: #4338ca; } a:hover { color: #3730a3; }
+    .num { font-variant-numeric: tabular-nums; }
+    .label { font-size: 10.5px; font-weight: 700; letter-spacing: 0.22em; color: #a29d95; }
+  </style>
+</helmet>
+<div style="width: 390px; min-height: 1500px; position: relative; background: #fbfaf8; color: #17181a; box-sizing: border-box; overflow: hidden">
+  <div style="padding: 24px 24px 110px; display: flex; flex-direction: column">
+
+    <div style="display: flex; align-items: center; gap: 12px; padding-bottom: 16px; border-bottom: 2px solid #17181a">
+      <svg style="width: 22px; height: 22px; color: #17181a; flex-shrink: 0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7 7-7M3 12h18"/></svg>
+      <span style="flex: 1 1 0%">
+        <span class="label" style="display: block">コミックマーケット105</span>
+        <span style="display: block; margin-top: 3px; font-size: 24px; font-weight: 900; line-height: 1">買い物リスト</span>
+      </span>
+      <span style="font-size: 12px; font-weight: 700; color: #78736c">12/30（火）</span>
+    </div>
+
+    <div style="display: flex; align-items: flex-end; justify-content: space-between; padding: 18px 0 14px; border-bottom: 1px solid #e5e2dc">
+      <span>
+        <span style="display: block; font-size: 12px; color: #78736c">今日の進捗</span>
+        <span class="num" style="display: block; margin-top: 2px; font-size: 40px; font-weight: 300; line-height: 1; letter-spacing: -0.02em">7<span style="font-size: 20px; color: #a29d95"> / 12</span></span>
+      </span>
+      <span style="text-align: right">
+        <span style="display: block; font-size: 12px; color: #78736c">残り（予算 ¥20,000）</span>
+        <span class="num" style="display: block; margin-top: 2px; font-size: 30px; font-weight: 300; line-height: 1; letter-spacing: -0.02em">¥5,400</span>
+      </span>
+    </div>
+    <div style="height: 3px; background: #e5e2dc; margin-top: -1px">
+      <span style="display: block; height: 3px; width: 58%; background: #17181a"></span>
+    </div>
+
+    <section style="padding-top: 22px">
+      <div style="display: flex; align-items: flex-start; gap: 14px; padding-bottom: 12px; border-bottom: 2px solid #17181a">
+        <span class="num" style="font-size: 30px; font-weight: 300; line-height: 1; color: #c6c1b8">01</span>
+        <span style="min-width: 0; flex: 1 1 0%">
+          <span style="display: block; font-size: 17px; font-weight: 700; line-height: 1.2">夏空スタジオ</span>
+          <span style="display: flex; align-items: center; gap: 10px; margin-top: 4px">
+            <span class="num" style="font-size: 13px; font-weight: 700">東1 ア-12a</span>
+            <span style="display: inline-flex; align-items: center; gap: 3px; font-size: 11.5px; font-weight: 700; color: #4338ca; border-bottom: 1px solid #4338ca">
+              配置マップ（目印あり）
+            </span>
+          </span>
+        </span>
+        <span style="text-align: right; flex-shrink: 0">
+          <span class="num" style="display: block; font-size: 16px; font-weight: 700">¥4,500</span>
+          <span class="num" style="display: block; margin-top: 1px; font-size: 11px; color: #a29d95">0/2</span>
+        </span>
+      </div>
+
+      <div style="padding: 14px 0; border-bottom: 1px solid #e5e2dc">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 10px">
+          <span style="font-size: 14.5px; font-weight: 700; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">新刊イラスト集</span>
+          <span class="num" style="font-size: 12px; color: #78736c; white-space: nowrap">¥1,500 × 2点</span>
+        </div>
+        <div style="margin-top: 12px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+          <span style="display: inline-flex; align-items: center; justify-content: center; min-height: 48px; border-radius: 8px; background: #17181a; color: #fbfaf8; font-size: 14px; font-weight: 700">買えた</span>
+          <span style="display: inline-flex; align-items: center; justify-content: center; min-height: 48px; border-radius: 8px; background: transparent; border: 1px solid #17181a; color: #17181a; font-size: 14px; font-weight: 700; box-sizing: border-box">買えなかった</span>
+        </div>
+        <span style="display: block; margin-top: 10px; text-align: center; font-size: 12px; font-weight: 700; color: #4338ca"><span style="border-bottom: 1px solid #4338ca; padding-bottom: 1px">一部だけ買えた（数量を入力）</span></span>
+      </div>
+
+      <div style="padding: 14px 0; border-bottom: 1px solid #e5e2dc">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 10px">
+          <span style="font-size: 14.5px; font-weight: 700; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">ポストカードセット</span>
+          <span class="num" style="font-size: 12px; color: #78736c; white-space: nowrap">¥500 × 3点</span>
+        </div>
+        <div style="margin-top: 12px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+          <span style="display: inline-flex; align-items: center; justify-content: center; min-height: 48px; border-radius: 8px; background: #17181a; color: #fbfaf8; font-size: 14px; font-weight: 700">買えた</span>
+          <span style="display: inline-flex; align-items: center; justify-content: center; min-height: 48px; border-radius: 8px; background: transparent; border: 1px solid #17181a; color: #17181a; font-size: 14px; font-weight: 700; box-sizing: border-box">買えなかった</span>
+        </div>
+        <span style="display: block; margin-top: 10px; text-align: center; font-size: 12px; font-weight: 700; color: #4338ca"><span style="border-bottom: 1px solid #4338ca; padding-bottom: 1px">一部だけ買えた（数量を入力）</span></span>
+      </div>
+
+      <div style="padding: 12px 0 0">
+        <span style="display: inline-flex; width: 100%; align-items: center; justify-content: center; min-height: 44px; border-radius: 8px; border: 1px dashed #b8b3aa; color: #78736c; font-size: 12.5px; font-weight: 700; box-sizing: border-box">このサークルを全部「買えた」にする</span>
+      </div>
+    </section>
+
+    <section style="padding-top: 26px">
+      <div style="display: flex; align-items: flex-start; gap: 14px; padding-bottom: 12px; border-bottom: 2px solid #17181a">
+        <span class="num" style="font-size: 30px; font-weight: 300; line-height: 1; color: #c6c1b8">02</span>
+        <span style="min-width: 0; flex: 1 1 0%">
+          <span style="display: block; font-size: 17px; font-weight: 700; line-height: 1.2">ねこまた工房</span>
+          <span style="display: flex; align-items: center; gap: 10px; margin-top: 4px">
+            <span class="num" style="font-size: 13px; font-weight: 700">東2 ウ-05b</span>
+            <span style="font-size: 11px; font-weight: 900; color: #b91c1c; letter-spacing: 0.08em">完売注意</span>
+          </span>
+        </span>
+        <span style="text-align: right; flex-shrink: 0">
+          <span class="num" style="display: block; font-size: 16px; font-weight: 700">¥1,600</span>
+          <span class="num" style="display: block; margin-top: 1px; font-size: 11px; color: #a29d95">0/1</span>
+        </span>
+      </div>
+
+      <div style="padding: 14px 0; border-bottom: 1px solid #e5e2dc">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 10px">
+          <span style="font-size: 14.5px; font-weight: 700; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">アクリルスタンド</span>
+          <span class="num" style="font-size: 12px; color: #78736c; white-space: nowrap">¥800 × 2点</span>
+        </div>
+        <div style="margin-top: 12px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+          <span style="display: inline-flex; align-items: center; justify-content: center; min-height: 48px; border-radius: 8px; background: #17181a; color: #fbfaf8; font-size: 14px; font-weight: 700">買えた</span>
+          <span style="display: inline-flex; align-items: center; justify-content: center; min-height: 48px; border-radius: 8px; background: transparent; border: 1px solid #17181a; color: #17181a; font-size: 14px; font-weight: 700; box-sizing: border-box">買えなかった</span>
+        </div>
+        <span style="display: block; margin-top: 10px; text-align: center; font-size: 12px; font-weight: 700; color: #4338ca"><span style="border-bottom: 1px solid #4338ca; padding-bottom: 1px">一部だけ買えた（数量を入力）</span></span>
+      </div>
+    </section>
+
+    <section style="padding-top: 26px">
+      <div style="display: flex; align-items: flex-start; gap: 14px; padding-bottom: 12px; border-bottom: 1px solid #e5e2dc; opacity: 0.55">
+        <span class="num" style="font-size: 30px; font-weight: 300; line-height: 1; color: #c6c1b8">03</span>
+        <span style="min-width: 0; flex: 1 1 0%">
+          <span style="display: block; font-size: 17px; font-weight: 700; line-height: 1.2; text-decoration: line-through; text-decoration-thickness: 1px">うみねこ社</span>
+          <span style="display: flex; align-items: center; gap: 10px; margin-top: 4px">
+            <span class="num" style="font-size: 13px; font-weight: 700">西1 え-21b</span>
+            <span style="font-size: 11.5px; color: #78736c">既刊セット・買えた（1点）</span>
+          </span>
+        </span>
+        <span style="text-align: right; flex-shrink: 0">
+          <span class="num" style="display: block; font-size: 16px; font-weight: 700">¥1,200</span>
+          <span style="display: inline-flex; align-items: center; gap: 3px; margin-top: 2px; font-size: 11px; font-weight: 900; color: #17181a">
+            <svg style="width: 12px; height: 12px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            完了
+          </span>
+        </span>
+      </div>
+    </section>
+
+    <section style="padding-top: 24px">
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-top: 1px solid #e5e2dc; border-bottom: 1px solid #e5e2dc">
+        <span style="min-width: 0">
+          <span style="display: block; font-size: 13.5px; font-weight: 700">巡回ルート</span>
+          <span style="display: block; margin-top: 2px; font-size: 11.5px; color: #78736c">完売しやすいサークルを先に、あとは配置順</span>
+        </span>
+        <span style="display: flex; gap: 14px; flex-shrink: 0">
+          <span style="font-size: 12px; font-weight: 700; color: #4338ca; border-bottom: 1px solid #4338ca">並べ替える</span>
+          <span style="font-size: 12px; font-weight: 700; color: #4338ca; border-bottom: 1px solid #4338ca">コピー</span>
+        </span>
+      </div>
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 0; border-bottom: 1px solid #e5e2dc">
+        <span style="min-width: 0">
+          <span style="display: block; font-size: 13.5px; font-weight: 700">買い物中は画面を消さない</span>
+          <span style="display: block; margin-top: 2px; font-size: 11.5px; color: #78736c; line-height: 1.5">列に並んでいる間も画面が点いたままになります</span>
+        </span>
+        <span style="position: relative; display: inline-block; width: 46px; height: 26px; border-radius: 999px; background: #17181a; flex-shrink: 0">
+          <span style="position: absolute; top: 3px; right: 3px; width: 20px; height: 20px; border-radius: 999px; background: #fbfaf8"></span>
+        </span>
+      </div>
+    </section>
+  </div>
+
+  <nav style="position: absolute; left: 0; right: 0; bottom: 0; background: #fbfaf8; border-top: 1px solid #e5e2dc; display: flex; padding: 10px 8px 24px">
+    <span style="flex: 1 1 0%; display: flex; flex-direction: column; align-items: center; gap: 4px">
+      <svg style="width: 22px; height: 22px; color: #a29d95" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.4"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10.5L12 3l9 7.5M5 9.5V20h14V9.5"/></svg>
+      <span style="font-size: 10px; font-weight: 500; color: #a29d95">ホーム</span>
+      <span style="width: 4px; height: 4px"></span>
+    </span>
+    <span style="flex: 1 1 0%; display: flex; flex-direction: column; align-items: center; gap: 4px">
+      <svg style="width: 22px; height: 22px; color: #17181a" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-1a4 4 0 00-3-3.87M9 20H2v-1a4 4 0 013-3.87m10.5-4.13a3 3 0 11-6 0 3 3 0 016 0zM19 8a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0zM10 8a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0zM16 20H8v-1a4 4 0 018 0v1z"/></svg>
+      <span style="font-size: 10px; font-weight: 700; color: #17181a">グループ</span>
+      <span style="width: 4px; height: 4px; border-radius: 999px; background: #4338ca"></span>
+    </span>
+    <span style="flex: 1 1 0%; display: flex; flex-direction: column; align-items: center; gap: 4px">
+      <span style="position: relative; display: inline-flex">
+        <svg style="width: 22px; height: 22px; color: #a29d95" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.4"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 10-12 0v3.2c0 .5-.2 1-.6 1.4L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+        <span class="num" style="position: absolute; top: -5px; right: -8px; font-size: 10px; font-weight: 900; color: #b91c1c">3</span>
+      </span>
+      <span style="font-size: 10px; font-weight: 500; color: #a29d95">お知らせ</span>
+      <span style="width: 4px; height: 4px"></span>
+    </span>
+    <span style="flex: 1 1 0%; display: flex; flex-direction: column; align-items: center; gap: 4px">
+      <svg style="width: 22px; height: 22px; color: #a29d95" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.4"><path stroke-linecap="round" stroke-linejoin="round" d="M5.5 20a6.5 6.5 0 0113 0M15 8a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      <span style="font-size: 10px; font-weight: 500; color: #a29d95">アカウント</span>
+      <span style="width: 4px; height: 4px"></span>
+    </span>
+  </nav>
+</div>
+</x-dc>
+<script data-dc-script data-props='{}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

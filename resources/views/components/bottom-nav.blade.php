@@ -12,7 +12,7 @@
     ];
 @endphp
 
-<nav class="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200 bg-white pb-safe">
+<nav data-app-nav class="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200 bg-white pb-safe">
     <div class="mx-auto flex max-w-3xl">
         @foreach ($items as $item)
             <a href="{{ route($item['route']) }}"
