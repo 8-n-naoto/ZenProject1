@@ -4,7 +4,7 @@
  *
  * ログイン後のページはユーザーごとの内容を含むため、意図的にキャッシュしない。
  */
-var CACHE = 'kyodo-static-8aff13877ff1';
+var CACHE = 'kyodo-static-d7bac0a6f13c';
 var ASSETS = [
     '/css/app.css',
     '/icons/icon-192.png',

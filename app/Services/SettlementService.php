@@ -493,4 +493,56 @@ class SettlementService
 
         return $rows;
     }
+
+    /**
+     * 1人分の収支の内訳。立替（他の人の分を購入した明細）と
+     * 購入（他の人に立て替えてもらった明細）に分けて返す。
+     *
+     * 自分で立て替えた自分の購入分は債務にならないため含まれない
+     * （summary() の立替・購入と同じ集計基準）。
+     *
+     * @return array{
+     *     spent: Collection<int, array{result:?PurchaseResult, counterparty:?User, quantity:int, amount:int}>,
+     *     owed: Collection<int, array{result:?PurchaseResult, counterparty:?User, quantity:int, amount:int}>,
+     *     spentTotal: int,
+     *     owedTotal: int,
+     *     net: int
+     * }
+     */
+    public function breakdownFor(Event $event, User $user): array
+    {
+        $debts = $this->debts($event);
+
+        $spentDebts = $debts->where('creditor_id', $user->id)->values();
+        $owedDebts = $debts->where('debtor_id', $user->id)->values();
+
+        $results = PurchaseResult::query()
+            ->with('eventProduct.eventCircle')
+            ->whereIn('id', $spentDebts->merge($owedDebts)->pluck('purchase_result_id')->unique())
+            ->get()
+            ->keyBy('id');
+
+        $counterparties = User::withTrashed()
+            ->whereIn('id', $spentDebts->pluck('debtor_id')->merge($owedDebts->pluck('creditor_id'))->unique())
+            ->get()
+            ->keyBy('id');
+
+        $row = fn (array $debt, int $counterpartyId): array => [
+            'result' => $results->get($debt['purchase_result_id']),
+            'counterparty' => $counterparties->get($counterpartyId),
+            'quantity' => $debt['quantity'],
+            'amount' => $debt['amount'],
+        ];
+
+        $spentTotal = (int) $spentDebts->sum('amount');
+        $owedTotal = (int) $owedDebts->sum('amount');
+
+        return [
+            'spent' => $spentDebts->map(fn (array $debt) => $row($debt, $debt['debtor_id'])),
+            'owed' => $owedDebts->map(fn (array $debt) => $row($debt, $debt['creditor_id'])),
+            'spentTotal' => $spentTotal,
+            'owedTotal' => $owedTotal,
+            'net' => $spentTotal - $owedTotal,
+        ];
+    }
 }

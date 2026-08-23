@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\Payment;
 use App\Models\Settlement;
+use App\Models\User;
 use App\Policies\SettlementPolicy;
 use App\Services\SettlementService;
 use Illuminate\Http\RedirectResponse;
@@ -39,6 +40,20 @@ class SettlementController extends Controller
             'summary' => $this->settlements->summary($event),
             'shareText' => $this->settlements->shareText($event),
             'canRegenerate' => $policy->regenerate(auth()->user(), $event),
+        ]);
+    }
+
+    /**
+     * メンバー1人分の収支の内訳（立替と購入の明細）。
+     */
+    public function breakdown(Event $event, User $user): View
+    {
+        abort_unless(app(SettlementPolicy::class)->view(auth()->user(), $event), 403);
+
+        return view('settlements.breakdown', [
+            'event' => $event,
+            'member' => $user,
+            'breakdown' => $this->settlements->breakdownFor($event, $user),
         ]);
     }
 

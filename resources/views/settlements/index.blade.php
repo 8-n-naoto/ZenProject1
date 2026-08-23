@@ -41,9 +41,10 @@
             @endforelse
         </x-card>
 
-        <x-card title="収支の内訳" subtitle="立て替えた額と、自分の購入分の差額です。">
+        <x-card title="収支の内訳" subtitle="立て替えた額と、自分の購入分の差額です。名前を押すと明細を確認できます。">
             @forelse ($summary as $row)
-                <div class="flex items-center gap-3 border-b border-slate-100 py-3 last:border-b-0">
+                <a href="{{ route('settlements.breakdown', [$event, $row['user']]) }}"
+                   class="-mx-2 flex items-center gap-3 rounded-xl border-b border-slate-100 px-2 py-3 last:border-b-0 hover:bg-slate-50">
                     <x-avatar :user="$row['user']" size="sm" />
                     <div class="min-w-0 flex-1">
                         <p class="truncate text-sm">{{ $row['user']?->displayName() ?? '不明なユーザー' }}</p>
@@ -54,7 +55,8 @@
                     <span class="shrink-0 text-sm font-semibold tabular-nums {{ $row['net'] > 0 ? 'text-emerald-600' : ($row['net'] < 0 ? 'text-rose-600' : 'text-slate-400') }}">
                         {{ $row['net'] > 0 ? '+' : ($row['net'] < 0 ? '-' : '') }}¥{{ number_format(abs($row['net'])) }}
                     </span>
-                </div>
+                    <span aria-hidden="true" class="shrink-0 text-slate-300">›</span>
+                </a>
             @empty
                 <p class="py-3 text-center text-xs text-slate-500">収支の対象になる購入結果がまだありません。</p>
             @endforelse

@@ -254,6 +254,7 @@ input, textarea, select { background-color: #ffffff; }
 .text-amber-800{color:#92400e}
 .text-sky-800{color:#075985}
 .text-xl{font-size:1.25rem;line-height:1.75rem}
+.pt-3{padding-top:0.75rem}
 .opacity-60{opacity:0.6}
 .mr-1{margin-right:0.25rem}
 .bg-emerald-100{background-color:#d1fae5}
@@ -261,7 +262,7 @@ input, textarea, select { background-color: #ffffff; }
 .divide-slate-100 > * + *{border-top-color:#f1f5f9}
 .hover\:bg-sky-50:hover{background-color:#f0f9ff}
 .pt-2{padding-top:0.5rem}
-.pt-3{padding-top:0.75rem}
+.table{display:table}
 .static{position:static}
 .bg-amber-100{background-color:#fef3c7}
 .bg-rose-100{background-color:#ffe4e6}

@@ -192,6 +192,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // 精算・支払い
     Route::get('/my/settlements', [SettlementController::class, 'mine'])->name('settlements.mine');
     Route::get('/events/{event}/settlements', [SettlementController::class, 'index'])->name('settlements.index');
+    Route::get('/events/{event}/settlements/breakdown/{user}', [SettlementController::class, 'breakdown'])->name('settlements.breakdown');
     Route::post('/events/{event}/settlements/regenerate', [SettlementController::class, 'regenerate'])->name('settlements.regenerate');
     Route::get('/settlements/{settlement}', [SettlementController::class, 'show'])->name('settlements.show');
     Route::post('/settlements/{settlement}/report', [SettlementController::class, 'report'])->name('settlements.report');

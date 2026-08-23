@@ -77,7 +77,7 @@
 
 ## 7. テスト
 
-`php artisan test` — **351 tests / 1,049 assertions すべてPASS**（SQLite :memory:）
+`php artisan test` — **511 tests / 1,671 assertions すべてPASS**（SQLite :memory:、2026-08-23時点。PHP 8.5 では PDO 定数の DEPR 警告が出るが失敗ではない）
 
 | 区分 | 主な内容 |
 | --- | --- |
@@ -210,6 +210,11 @@ php artisan serve
 | 指摘 | 対応 |
 | --- | --- |
 | 精算で支払い報告はできるが、受け取る側に「受け取った」ボタンが表示されず受取確認ができない | `Payment::class` の Policy が未登録で、ビューの `can('confirm', $payment)` が常に false だった。`AppServiceProvider` に `Gate::policy(Payment::class, SettlementPolicy::class)` を追加。ボタン表示を画面描画で検証する回帰テストを `SettlementTest` に追加（POST 直叩きのテストでは検出できなかった） |
+
+### 精算の改善（2026-08-23）
+| 機能 | 実装 |
+| --- | --- |
+| 収支の内訳の詳細ページ | `SettlementService::breakdownFor()` / `settlements.breakdown`（`/events/{event}/settlements/breakdown/{user}`）。精算リストの「収支の内訳」の行から、そのメンバーの立替（誰の分を何点）と購入（誰が立替か）を商品単位で確認できる。個人購入は購入者本人が立替者になるため債務が発生せず、この内訳には現れない（summary() と同じ集計基準） |
 
 ### Notionタスクの消化（2026-08-23）
 | 機能 | 実装 |
