@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Support\AccountRules;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rules\Password;
 
 class RegisterRequest extends FormRequest
 {
@@ -18,10 +18,10 @@ class RegisterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_id' => ['required', 'string', 'min:5', 'max:15', 'regex:/^[a-z0-9]+$/', 'unique:users,user_id'],
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'confirmed', Password::defaults()],
+            'user_id' => AccountRules::userId(),
+            'name' => AccountRules::name(),
+            'email' => AccountRules::email(),
+            'password' => AccountRules::password(confirmed: true),
         ];
     }
 
@@ -43,8 +43,6 @@ class RegisterRequest extends FormRequest
      */
     public function messages(): array
     {
-        return [
-            'user_id.regex' => 'ログインIDは英小文字と数字のみで入力してください。',
-        ];
+        return AccountRules::messages();
     }
 }

@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests\Profile;
 
+use App\Support\AccountRules;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rules\Password;
 
 class UpdatePasswordRequest extends FormRequest
 {
@@ -19,7 +19,7 @@ class UpdatePasswordRequest extends FormRequest
     {
         return [
             'current_password' => ['required', 'current_password'],
-            'password' => ['required', 'confirmed', Password::defaults()],
+            'password' => AccountRules::password(confirmed: true),
         ];
     }
 

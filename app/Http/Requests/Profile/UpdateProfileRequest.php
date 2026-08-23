@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Profile;
 
+use App\Support\AccountRules;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -18,11 +19,8 @@ class UpdateProfileRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => [
-                'required', 'email', 'max:255',
-                Rule::unique('users', 'email')->ignore($this->user()->id),
-            ],
+            'name' => AccountRules::name(),
+            'email' => AccountRules::email($this->user()->id),
             // メールアドレスを変えるとパスワード再設定でアカウントを奪えてしまうため、
             // 変更する場合だけ現在のパスワードを求める
             'email_current_password' => [

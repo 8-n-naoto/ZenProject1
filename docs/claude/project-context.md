@@ -79,7 +79,7 @@
 
 ## 7. テスト
 
-`php artisan test` — **511 tests / 1,671 assertions すべてPASS**（SQLite :memory:、2026-08-23時点。PHP 8.5 では PDO 定数の DEPR 警告が出るが失敗ではない）
+`php artisan test` — **537 tests / 1,749 assertions すべてPASS**（SQLite :memory:、2026-08-23時点。PHP 8.5 では PDO 定数の DEPR 警告が出るが失敗ではない）
 
 | 区分 | 主な内容 |
 | --- | --- |
@@ -108,6 +108,23 @@ php artisan serve
 ```
 
 ログインID `owner001` / `leader01` / `buyer001` / `member01`（パスワード `password`）。
+
+### テストユーザーの単発作成
+
+グループ・イベント込みの一式は上の `DemoSeeder`。任意のログインIDで1人だけ欲しいときは次を使う。
+
+```bash
+php artisan users:create-test                                              # test001 から順に自動生成
+php artisan users:create-test taro123 --name=太郎 --password=secret123
+php artisan users:create-test --count=3 --group="冬コミ有志の会" --role=responsible
+```
+
+メール認証済みで作られるため、作成直後からログインできる。主なオプションは
+`--count`（まとめて作成）/ `--group` `--role`（グループに参加させる）/ `--unverified`（未認証で作る）/
+`--force`（既存IDのパスワード再設定。退会済みなら復帰させる）。
+パスワードが分かりきったアカウントを作れてしまうため、**本番環境では実行できない**。
+
+入力ルールは会員登録画面と共通で `App\Support\AccountRules` に集約している。
 
 ## 9. ブラッシュアップで追加した機能（2026-08-23）
 
